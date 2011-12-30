@@ -65,9 +65,11 @@ public class Application extends Controller {
         index(null,null);
     }
     public static void index(String tags, String q) {
+        final long start = System.currentTimeMillis();
         final Map<String, Category> categories = loadCategories();
         final Collection<domain.AppInfo> apps = loadApps(tags(tags), q).values();
-        render(categories, apps,tags,q);
+        final long delta = System.currentTimeMillis()-start;
+        render(categories, apps,tags,q,delta);
     }
 
     private static Map<String, Category> tags(String tags) {

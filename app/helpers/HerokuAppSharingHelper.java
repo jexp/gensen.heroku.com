@@ -42,7 +42,11 @@ public class HerokuAppSharingHelper extends Job<App> {
     public HerokuAppSharingHelper(String emailAddress, String gitUrl) {
         this.emailAddress = emailAddress;
         this.gitUrl = gitUrl;
-        herokuConnection = createConnection(userName(), getenv("HEROKU_PASSWORD"));
+        herokuConnection = createConnection(userName(), password());
+    }
+
+    private String password() {
+        return getenv("HEROKU_PASSWORD");
     }
 
     private HttpClientConnection createConnection(final String username, final String password) {
