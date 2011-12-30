@@ -64,15 +64,15 @@ a.tag:hover {
 <form action="@{Application.addApp()}" method="POST">
    Your Heroku Email: <input name="email" type="email"/><br/>
    App Name: <input name="name"/><br/>
-   Source Link: <input name="repository"  type="url" value="http://github.com/<you>/appname"/><br/>
-   Repository Git URL: <input name="giturl" type="url" value="git://github.com/<you>/<appname>.git"/><br/>
-   Heroku Demo App: <input name="herokuapp" type="url" value="http://appname.herokuapp.com"/><br/>
-   Stack: <select name="stack"/>
+   Heroku Demo: <input name="herokuapp" type="url" hint="http://appname.herokuapp.com"/><br/>
+    Stack: <select name="stack"/>
 	<option value="cedar" selected="selected">Cedar</option>
 	<option value="bamboo">Bamboo</option>
 	<option value="aspen">Aspen</option>
    </select><br/>
-   Application Type: <input type="type" name="type"/> #{list items:categories['type']?.tags, as:'tag'} <a style="font-size:${java.lang.Math.sqrt(tag.count)+10}" class="tag" onclick="add_tag('type','${tag.name}')">${tag.name}</a>  #{/list}<br/>
+    Source Link: <input name="repository"  type="url" hint="http://github.com/<you>/appname"/><br/>
+    Repository Git URL: <input name="giturl" type="url" hint="git://github.com/<you>/<appname>.git"/><br/>
+   Application Type: <input id="type" name="type"/> #{list items:categories['type']?.tags, as:'tag'} <a style="font-size:${java.lang.Math.sqrt(tag.count)+10}" class="tag" onclick="add_tag('type','${tag.name}')">${tag.name}</a>  #{/list}<br/>
    Language: <input id="language" name="language"/>#{list items:categories['language']?.tags, as:'tag'} <a style="font-size:${java.lang.Math.sqrt(tag.count)+10}" class="tag" onclick="add_tag('language','${tag.name}')">${tag.name}</a>  #{/list}<br/>
    Framework: <input id="framework" name="framework"/> #{list items:categories['framework']?.tags, as:'tag'} <a style="font-size:${java.lang.Math.sqrt(tag.count)+10}" class="tag" onclick="add_tag('framework','${tag.name}')">${tag.name}</a>  #{/list}<br/>
    Build Tool: <input id="build" name="build"/> #{list items:categories['build']?.tags, as:'tag'} <a style="font-size:${java.lang.Math.sqrt(tag.count)+10}" class="tag" onclick="add_tag('build','${tag.name}')">${tag.name}</a>  #{/list}<br/>
