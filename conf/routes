@@ -6,7 +6,8 @@
 GET     /                                       Application.index
 
 POST    /                                       Application.shareApp
-
+GET     /add                                    Application.add
+POST    /add                                    Application.addApp
 # Ignore favicon requests
 GET     /favicon.ico                            404
 

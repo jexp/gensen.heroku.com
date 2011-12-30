@@ -18,154 +18,192 @@ import org.apache.commons.io.FileUtils;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.*;
-import org.eclipse.jgit.lib.Repository;
-import org.eclipse.jgit.lib.RepositoryBuilder;
 import play.jobs.Job;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.UUID;
+
+import static java.lang.System.getenv;
 
 public class HerokuAppSharingHelper extends Job<App> {
 
     private static final String SSH_KEY_COMMENT = "share@heroku";
-    
-    String emailAddress;
-    String gitUrl;
+
+    private final String emailAddress;
+    private final String gitUrl;
 
     public Throwable exception;
+
+    private final HttpClientConnection herokuConnection;
 
     public HerokuAppSharingHelper(String emailAddress, String gitUrl) {
         this.emailAddress = emailAddress;
         this.gitUrl = gitUrl;
+        herokuConnection = createConnection(userName(), getenv("HEROKU_PASSWORD"));
+    }
+
+    private HttpClientConnection createConnection(final String username, final String password) {
+        return new HttpClientConnection(new BasicAuthLogin(username, password));
     }
 
     @Override
     public App doJobWithResult() throws Exception {
-        App app = null;
+        File home = createHome();
+        addSshKeysAndConfig(home);
 
-        try {
-            HttpClientConnection herokuConnection = new HttpClientConnection(new BasicAuthLogin(System.getenv("HEROKU_USERNAME"), System.getenv("HEROKU_PASSWORD")));
+        App app = cloneRepoAndPush(home, gitUrl);
 
-            // create an app on heroku (using heroku credentials specified in ${HEROKU_USERNAME} / ${HEROKU_PASSWORD}
-            AppCreate cmd = new AppCreate(Heroku.Stack.Cedar);
-            app = herokuConnection.execute(cmd);
+        transferAppToUser(app, emailAddress);
 
-            if (!app.getCreate_status().equals("complete")) {
-                throw new RuntimeException("Could not create the Heroku app");
-            }
+        cleanUp(app, home);
 
-            // write the public key to a file
-            String fakeUserHome = System.getProperty("java.io.tmpdir") + File.separator + UUID.randomUUID().toString();
+        return app;
+    }
 
-            File fakeUserHomeSshDir = new File(fakeUserHome + File.separator + ".ssh");
-            fakeUserHomeSshDir.mkdirs();
+    private void cleanUp(App app, File home) {
+        removeHerokuUserCollaborator(app);
+        removeHerokuUserKey();
 
-            JSch jsch = new JSch();
-            KeyPair keyPair = KeyPair.genKeyPair(jsch, KeyPair.RSA);
-            keyPair.writePrivateKey(fakeUserHomeSshDir.getAbsolutePath() + File.separator + "id_rsa");
-            keyPair.writePublicKey(fakeUserHomeSshDir.getAbsolutePath() + File.separator + "id_rsa.pub", SSH_KEY_COMMENT);
+        cleanUp(home);
+    }
 
-            ByteArrayOutputStream publicKeyOutputStream = new ByteArrayOutputStream();
-            keyPair.writePublicKey(publicKeyOutputStream, SSH_KEY_COMMENT);
-            publicKeyOutputStream.close();
-            String sshPublicKey = new String(publicKeyOutputStream.toByteArray());
+    private void transferAppToUser(App app, final String emailAddress) {
+        shareApp(app, herokuConnection, emailAddress);
+        transferApp(app, emailAddress);
+    }
 
-            // copy the known_hosts file to the .ssh dir
-            File knownHostsFile = new File(getClass().getClassLoader().getResource("known_hosts").getFile());
-            FileUtils.copyFileToDirectory(knownHostsFile, fakeUserHomeSshDir);
+    private App cloneRepoAndPush(File home, final String gitUrl) throws URISyntaxException, IOException, WrongRepositoryStateException, InvalidConfigurationException, DetachedHeadException, InvalidRemoteException, CanceledException, RefNotFoundException {
+        Git gitRepo = cloneGitRepository(home, gitUrl);
+        setRepoUserHome(home, gitRepo);
 
-            // add the key pair to ${HEROKU_USERNAME}
-            KeyAdd keyAdd = new KeyAdd(sshPublicKey);
-            Unit keyAddResponse = herokuConnection.execute(keyAdd);
+        App app = createApp(Heroku.Stack.Cedar);
+        pushToRemote(gitRepo, app.getGit_url());
+        return app;
+    }
 
-            if (keyAddResponse == null) {
-                throw new RuntimeException("Could not add an ssh key to the user");
-            }
+    private void addSshKeysAndConfig(File home) throws JSchException, IOException {
+        File sshDir = sshDir(home);
+        String publicKey = createKeys(sshDir);
+        copyKnownHosts(sshDir);
+        addPublicKey(publicKey);
+    }
 
-            URI sourceRepoUri = new URI(gitUrl);
+    private void cleanUp(File home) {
+        home.delete();
+    }
 
-            // git clone a repo specified in sourceRepoUri to local disk
-            File tmpDir = new File(System.getProperty("java.io.tmpdir") + File.separator + "src" +
-                    File.separator + sourceRepoUri.getHost() + File.separator + sourceRepoUri.getPath());
+    private void removeHerokuUserKey() {
+        KeyRemove keyRemove = new KeyRemove(SSH_KEY_COMMENT);
+        Unit keyRemoveResponse = herokuConnection.execute(keyRemove);
 
-            Git gitRepo = null;
+        if (keyRemoveResponse == null) {
+            throw new RuntimeException("Could not remove ssh key");
+        }
+    }
 
-            if (!tmpDir.exists()) {
-                CloneCommand cloneCommand = new CloneCommand();
-                cloneCommand.setURI(sourceRepoUri.toString());
-                cloneCommand.setDirectory(tmpDir);
-                gitRepo = cloneCommand.call();
-            } else {
-                File tmpGitDir = new File(tmpDir.getAbsolutePath() + File.separator + ".git");
-                Repository repository = new RepositoryBuilder().setGitDir(tmpGitDir).build();
-                gitRepo = new Git(repository);
-                gitRepo.pull().call();
-            }
+    private void removeHerokuUserCollaborator(App app) {
+        SharingRemove sharingRemove = new SharingRemove(app.getName(), userName());
+        Unit sharingRemoveResponse = herokuConnection.execute(sharingRemove);
 
-            // git push the heroku repo
+        if (sharingRemoveResponse == null) {
+            throw new RuntimeException("Could remove " + userName() + " from the app");
+        }
+    }
 
-            gitRepo.getRepository().getFS().setUserHome(new File(fakeUserHome));
-            gitRepo.push().setRemote(app.getGit_url()).call();
+    private String userName() {
+        return getenv("HEROKU_USERNAME");
+    }
 
-            // share the app with the provided email
-            SharingAdd sharingAdd = new SharingAdd(app.getName(), emailAddress);
-            Unit sharingAddResponse = herokuConnection.execute(sharingAdd);
+    private void transferApp(App app, final String emailAddress) {
+        SharingTransfer sharingTransfer = new SharingTransfer(app.getName(), emailAddress);
+        Unit sharingTransferResponse = herokuConnection.execute(sharingTransfer);
 
-            if (sharingAddResponse == null) {
-                throw new RuntimeException("Could not add " + emailAddress + " as a collaborator");
-            }
+        if (sharingTransferResponse == null) {
+            throw new RuntimeException("Could not transfer the app to " + emailAddress);
+        }
+    }
 
-            // transfer the app to the provided email
-            SharingTransfer sharingTransfer = new SharingTransfer(app.getName(), emailAddress);
-            Unit sharingTransferResponse = herokuConnection.execute(sharingTransfer);
+    private void setRepoUserHome(File home, Git gitRepo) {
+        gitRepo.getRepository().getFS().setUserHome(home);
+    }
 
-            if (sharingTransferResponse == null) {
-                throw new RuntimeException("Could not transfer the app to " + emailAddress);
-            }
+    private void pushToRemote(Git gitRepo, final String appGitUrl) throws InvalidRemoteException {
+        gitRepo.push().setRemote(appGitUrl).call();
+    }
 
-            // remove ${HEROKU_USERNAME} as collaborator
-            SharingRemove sharingRemove = new SharingRemove(app.getName(), System.getenv("HEROKU_USERNAME"));
-            Unit sharingRemoveResponse = herokuConnection.execute(sharingRemove);
+    private File sshDir(File home) {
+        File sshDir = new File(home, ".ssh");
+        if (sshDir.exists()) return sshDir;
+        sshDir.mkdirs();
+        return sshDir;
+    }
 
-            if (sharingRemoveResponse == null) {
-                throw new RuntimeException("Could remove " + System.getenv("HEROKU_USERNAME") + " from the app");
-            }
+    private void copyKnownHosts(File sshDir) throws IOException {
+        File knownHostsFile = new File(getClass().getClassLoader().getResource("known_hosts").getFile());
+        FileUtils.copyFileToDirectory(knownHostsFile, sshDir);
+    }
 
-            // remove the key pair from ${HEROKU_USERNAME}
-            KeyRemove keyRemove = new KeyRemove(SSH_KEY_COMMENT);
-            Unit keyRemoveResponse = herokuConnection.execute(keyRemove);
-            
-            if (keyRemoveResponse == null) {
-                throw new RuntimeException("Could not remove ssh key");
-            }
+    private String createKeys(File sshDir) throws JSchException, IOException {
+        JSch jsch = new JSch();
+        KeyPair keyPair = KeyPair.genKeyPair(jsch, KeyPair.RSA);
+        keyPair.writePrivateKey(new File(sshDir, "id_rsa").getAbsolutePath());
+        keyPair.writePublicKey(new File(sshDir, "id_rsa.pub").getAbsolutePath(), SSH_KEY_COMMENT);
 
-            // cleanup the fakeUserHome
-            new File(fakeUserHome).delete();
+        ByteArrayOutputStream publicKeyOutputStream = new ByteArrayOutputStream();
+        keyPair.writePublicKey(publicKeyOutputStream, SSH_KEY_COMMENT);
+        publicKeyOutputStream.close();
+        return new String(publicKeyOutputStream.toByteArray());
+    }
 
-            return app;
+    private File createHome() {
+        final File home = new File(tmpDir(), UUID.randomUUID().toString());
+        if (home.exists()) throw new RuntimeException("Home Directory " + home + " already exists");
+        if (!home.mkdirs()) throw new RuntimeException("Cannot create Home Directory " + home);
+        home.deleteOnExit();
+        return home;
+    }
 
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (URISyntaxException e) {
-            throw new RuntimeException(e);
-        } catch (InvalidConfigurationException e) {
-            throw new RuntimeException(e);
-        } catch (InvalidRemoteException e) {
-            throw new RuntimeException(e);
-        } catch (WrongRepositoryStateException e) {
-            throw new RuntimeException(e);
-        } catch (CanceledException e) {
-            throw new RuntimeException(e);
-        } catch (RefNotFoundException e) {
-            throw new RuntimeException(e);
-        } catch (DetachedHeadException e) {
-            throw new RuntimeException(e);
-        } catch (JSchException e) {
-            throw new RuntimeException(e);
+    private Git cloneGitRepository(File home, final String gitUrl) throws URISyntaxException, IOException, WrongRepositoryStateException, InvalidConfigurationException, DetachedHeadException, InvalidRemoteException, CanceledException, RefNotFoundException {
+        File srcDir = new File(home, "src");
+
+        if (srcDir.exists()) throw new RuntimeException("Source directory " + srcDir + " already exists!");
+
+        return new CloneCommand().setURI(gitUrl).setDirectory(srcDir).call();
+    }
+
+    private String tmpDir() {
+        return System.getProperty("java.io.tmpdir");
+    }
+
+    private void addPublicKey(String sshPublicKey) {
+        KeyAdd keyAdd = new KeyAdd(sshPublicKey);
+        Unit keyAddResponse = herokuConnection.execute(keyAdd);
+
+        if (keyAddResponse == null) {
+            throw new RuntimeException("Could not add an ssh key to the user");
+        }
+    }
+
+    private App createApp(final Heroku.Stack stack) {
+        App app;
+        AppCreate cmd = new AppCreate(stack);
+        app = herokuConnection.execute(cmd);
+
+        if (!app.getCreate_status().equals("complete")) {
+            throw new RuntimeException("Could not create the Heroku app");
+        }
+        return app;
+    }
+
+    private void shareApp(App app, HttpClientConnection herokuConnection, final String emailAddress) {
+        SharingAdd sharingAdd = new SharingAdd(app.getName(), emailAddress);
+        Unit sharingAddResponse = herokuConnection.execute(sharingAdd);
+
+        if (sharingAddResponse == null) {
+            throw new RuntimeException("Could not add " + emailAddress + " as a collaborator");
         }
     }
 
