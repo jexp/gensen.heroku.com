@@ -11,6 +11,8 @@ import helpers.HerokuAppSharingHelper;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.index.Index;
+import org.neo4j.graphdb.index.IndexHits;
+import org.neo4j.index.impl.lucene.LuceneIndexImplementation;
 import org.neo4j.rest.graphdb.RestGraphDatabase;
 import org.neo4j.rest.graphdb.query.RestCypherQueryEngine;
 import play.data.validation.Validation;
@@ -32,6 +34,8 @@ public class Application extends Controller {
     private static final RestGraphDatabase gdb = new RestGraphDatabase(neo4jUrl(), getenv("NEO4J_LOGIN"), getenv("NEO4J_PASSWORD"));
     private static final Index<Node> userIndex = gdb.index().forNodes("users");
     private static final Index<Node> appsIndex = gdb.index().forNodes("apps");
+    private static final Index<Node> searchIndex = gdb.index().forNodes("search", LuceneIndexImplementation.FULLTEXT_CONFIG);
+    private static final String COMMA_SPLIT = "\\s*,\\s*";
 
     private static String neo4jUrl() {
         final String envUrl = getenv("NEO4J_REST_URL");
@@ -40,10 +44,43 @@ public class Application extends Controller {
 
     private static final RestCypherQueryEngine queryEngine = new RestCypherQueryEngine(gdb.getRestAPI());
 
-    public static void index(String category, String tag) {
+    public static void reindex() {
+        final IndexHits<Node> nodes = appsIndex.query("giturl:*");
+        System.err.println("found nodes:"+nodes.size());
+        response.setContentTypeIfNotSet("application/json; charset=" + Http.Response.current().encoding);
+        List<String> names=new ArrayList<String>();
+        for (Node node : nodes) {
+            searchIndex.remove(node);
+            if (node.hasProperty("name")) {
+                final String name = (String) node.getProperty("name");
+                searchIndex.add(node,"name", name);
+                names.add(name);
+                System.err.println("added "+name);
+            }
+        }
+        response.writeChunk(toJson(names));
+    }
+
+    private static void index() {
+        index(null,null);
+    }
+    public static void index(String tags, String q) {
         final Map<String, Category> categories = loadCategories();
-        final Collection<domain.AppInfo> apps = loadApps(categories,category,tag).values();
-        render(categories, apps);
+        final Collection<domain.AppInfo> apps = loadApps(tags(tags), q).values();
+        render(categories, apps,tags,q);
+    }
+
+    private static Map<String, Category> tags(String tags) {
+        if (tags==null || tags.trim().isEmpty()) return null;
+        Map<String, Category> result=new HashMap<String, Category>();
+        for (String catTag : tags.trim().split(COMMA_SPLIT)) {
+            final String[] split = catTag.split("/");
+            final String tagName = split[1];
+            final String catName = split[0];
+            if (!result.containsKey(catName)) result.put(catName, new Category(catName,null));
+            result.get(catName).addTag(null,tagName,0);
+        }
+        return result;
     }
 
     public static void add() {
@@ -59,6 +96,8 @@ public class Application extends Controller {
         userIndex.add(newUser,"email",email);
         return newUser;
     }
+
+
     private static Map<String, Category> loadCategories() {
         final Iterable<Map<String,Object>> result = queryEngine.query("start n=node(0) match n-[:CATEGORY]->category-[?:TAG]->tag<-[?:TAGGED]-() return category, category.category, tag, tag.tag? , count(*) as count", null);
         Map<String,Category> categories=new HashMap<String, Category>();
@@ -72,13 +111,17 @@ public class Application extends Controller {
         return categories;
     }
 
-    private static Map<Long, domain.AppInfo> loadApps(Map<String, Category> categories, String category, String tag) {
-        final Iterable<Map<String,Object>> result = queryEngine.query(
-                " start app=node:apps('giturl:*') " +
+    private static Map<Long, domain.AppInfo> loadApps(Map<String, Category> categories, String query) {
+        final String where = getWhere(categories);
+        final String start = getStart(query);
+        final String statement = start +
                 " match category-[:TAG]->tag<-[:TAGGED]-app-[?:OWNS]->user " +
-                ((category!=null && tag!=null) ? " where category.category='"+category+"' and tag.tag='"+tag+"'" : "") + // todo fix params
+                ((where.isEmpty()) ? "" : " where " + where) +
                 " return ID(app) as appid, app.name, app.repository, app.herokuapp, collect(tag.tag) as tags " +
-                " order by app.name asc limit 20",null);
+                " order by app.name asc limit 20";
+        final Iterable<Map<String,Object>> result = queryEngine.query(
+                statement,null);
+        System.err.println(statement);
         Map<Long, domain.AppInfo> apps = new LinkedHashMap<Long, domain.AppInfo>();
         for (Map<String, Object> row : result) {
             final domain.AppInfo app = createApp(row);
@@ -87,12 +130,35 @@ public class Application extends Controller {
         return apps;
     }
 
+    private static String getStart(String query) {
+        return (query==null||query.isEmpty() ? " start app=node:apps('giturl:*') " :
+        " start app=node:search('name:"+query+"') ");
+    }
+
+    private static String getWhere(Map<String, Category> categories) {
+        if (categories==null || categories.isEmpty()) return "";
+        StringBuilder sb = new StringBuilder();
+        for (Category category : categories.values()) {
+            if (sb.length()>0) sb.append(" OR ");
+            sb.append("(");
+            sb.append("category.category = '").append(category.getName()).append("'").append(" AND (");
+            String or = "";
+            for (Tag tag : category.getTags()) {
+                sb.append(or);
+                sb.append("tag.tag ='").append(tag.getName()).append("'");
+                or = " OR ";
+            }
+            sb.append("))");
+        }
+        return sb.toString();
+    }
+
     private static domain.AppInfo createApp(Map<String, Object> row) {
         final String appName = row.get("app.name").toString();
         final Long appId = ((Number)row.get("appid")).longValue();
         final domain.AppInfo app = new domain.AppInfo(appId, appName,row.get("app.herokuapp").toString(),row.get("app.repository").toString());
         final String tagsString = row.get("tags").toString();
-        app.addTags(Arrays.asList(tagsString.substring(1, tagsString.length() - 1).split(",\\s*")));
+        app.addTags(Arrays.asList(tagsString.substring(1, tagsString.length() - 1).split(COMMA_SPLIT)));
         return app;
     }
 
@@ -103,12 +169,13 @@ String framework, String build, String addOn, String email) {
             Node userNode = getOrCreateUser(email);
             final Node appNode = gdb.getRestAPI().createNode(map("name", name, "repository", repository, "giturl", giturl, "herokuapp", herokuapp, "stack", stack));
             appsIndex.add(appNode,"giturl",giturl);
+            searchIndex.add(appNode,"name",name);
             if (userNode!=null) {
                 userNode.createRelationshipTo(appNode,RelTypes.OWNS);
             }
             addNewTags(type, language, framework, build, appNode);
         }
-        index(null, null);
+        index();
     }
 
     private static void addNewTags(String type, String language, String framework, String build, Node appNode) {
@@ -125,7 +192,7 @@ String framework, String build, String addOn, String email) {
         if (category == null) return;
 
         if (tagString==null || tagString.isEmpty()) return;
-        final String[] tags = tagString.split(",\\s*");
+        final String[] tags = tagString.split(COMMA_SPLIT);
         for (String tagName : tags) {
             tagName = tagName.trim();
             if (tagName.isEmpty()) continue;

@@ -25,6 +25,12 @@ label.app {
     float: none;
     font-size: 10pt;
 }
+#tags {
+    font-size: 8pt;
+}
+#search {
+    width: 80%;
+}
 </style>
 #{/set}
 #{set 'moreScripts'}
@@ -219,11 +225,45 @@ label.app {
         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
     })();
 
+    function add_tag(cat, tag) {
+        var e=$("#input_tags");
+        var v=e.val();
+        var add = cat+"/"+tag;
+        if (v.split(/, */).indexOf(add)>-1) return;
+        e.val(v.length==0 ? add : v + ", "+add);
+    }
 </script>
 #{/set}
 
-<div style="max-width: 660px; padding-top: 40px">
+<div style="width: 80%; padding-top: 40px">
 <div id="createAppForm">
+    <div id="search" style="width: 100%;">
+    <form action="/" method="get">
+        <input type="text" name="q" hint="name and or tags" size="120" value="${q}"/><input type="submit" name="search" value="search"/><br/>
+        <input style="font-size: 6pt;" id="input_tags" type="text" name="tags" size="120" value="${tags}"/>
+    </form>
+    <div id="tags">
+        <a href="/">All</a>
+        <span>Language:</span>
+            #{set cat:categories['language']/} #{list items:cat?.tags, as:'tag'}
+                    <a style="font-size:${java.lang.Math.sqrt(tag.count)+10}" class="tag" onclick="add_tag('${cat.name}','${tag.name}')">${tag.name}</a>
+            #{/list}
+        <span>Build Tool: </span>
+            #{set cat:categories['build']/} #{list items:cat?.tags, as:'tag'}
+                <a style="font-size:${java.lang.Math.sqrt(tag.count)+10}" class="tag" onclick="add_tag('${cat.name}','${tag.name}')">${tag.name}</a>
+            #{/list}
+        <br/>
+        <span>Framework: </span>
+            #{set cat:categories['framework']/}  #{list items:cat?.tags, as:'tag'}
+                <a style="font-size:${java.lang.Math.sqrt(tag.count)+10}" class="tag" onclick="add_tag('${cat.name}','${tag.name}')">${tag.name}</a>
+            #{/list}
+        <br/>
+        <span>Add-On:</span>
+            #{set cat:categories['add-on']/} #{list items:cat?.tags, as:'tag'}
+                <a style="font-size:${java.lang.Math.sqrt(tag.count)+10}" class="tag" onclick="add_tag('${cat.name}','${tag.name}')">${tag.name}</a>
+            #{/list}
+    </div>
+    </div>
 <div class="row">
 <h4>Step 1) Pick an app to start with:</h4>
 <div id="apps" style="margin-left: 30px">
@@ -234,25 +274,6 @@ label.app {
         </div>
     #{/list}
     <div class="row"><label class="app"><input id="customGitUrlRadio" type="radio" name="app" value="Custom git url"/>Custom git url</label> <input id="customGitUrl" type="text" title="git://github.com/foo/bar.git" style="display: none"/></div>
-</div>
-<div>
-    <a href="/">List all Apps</a><br/>
-    <h5>Language</h5>
-        #{list items:categories['language']?.tags, as:'tag'}
-                <a style="font-size:${java.lang.Math.sqrt(tag.count)+10}" class="tag" href="/?category=${categories['language'].name}&tag=${tag.name}">${tag.name}</a>
-        #{/list}
-    <h5>Framework</h5>
-        #{list items:categories['framework']?.tags, as:'tag'}
-            <a style="font-size:${java.lang.Math.sqrt(tag.count)+10}" class="tag" href="/?category=${categories['framework'].name}&tag=${tag.name}">${tag.name}</a>
-        #{/list}
-    <h5>Build Tool</h5>
-        #{list items:categories['build']?.tags, as:'tag'}
-            <a style="font-size:${java.lang.Math.sqrt(tag.count)+10}" class="tag" href="/?category=${categories['build'].name}&tag=${tag.name}">${tag.name}</a>
-        #{/list}
-    <h5>Add-On</h5>
-        #{list items:categories['add-on']?.tags, as:'tag'}
-            <a style="font-size:${java.lang.Math.sqrt(tag.count)+10}" class="tag" href="/?category=${categories['add-on'].name}&tag=${tag.name}">${tag.name}</a>
-        #{/list}
 </div>
 </div>
 <div class="row">
