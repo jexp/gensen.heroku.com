@@ -235,6 +235,25 @@ label.app {
     #{/list}
     <div class="row"><label class="app"><input id="customGitUrlRadio" type="radio" name="app" value="Custom git url"/>Custom git url</label> <input id="customGitUrl" type="text" title="git://github.com/foo/bar.git" style="display: none"/></div>
 </div>
+<div>
+    <a href="/">List all Apps</a><br/>
+    <h5>Language</h5>
+        #{list items:categories['language']?.tags, as:'tag'}
+                <a style="font-size:${java.lang.Math.sqrt(tag.count)+10}" class="tag" href="/?category=${categories['language'].name}&tag=${tag.name}">${tag.name}</a>
+        #{/list}
+    <h5>Framework</h5>
+        #{list items:categories['framework']?.tags, as:'tag'}
+            <a style="font-size:${java.lang.Math.sqrt(tag.count)+10}" class="tag" href="/?category=${categories['framework'].name}&tag=${tag.name}">${tag.name}</a>
+        #{/list}
+    <h5>Build Tool</h5>
+        #{list items:categories['build']?.tags, as:'tag'}
+            <a style="font-size:${java.lang.Math.sqrt(tag.count)+10}" class="tag" href="/?category=${categories['build'].name}&tag=${tag.name}">${tag.name}</a>
+        #{/list}
+    <h5>Add-On</h5>
+        #{list items:categories['add-on']?.tags, as:'tag'}
+            <a style="font-size:${java.lang.Math.sqrt(tag.count)+10}" class="tag" href="/?category=${categories['add-on'].name}&tag=${tag.name}">${tag.name}</a>
+        #{/list}
+</div>
 </div>
 <div class="row">
 <h4>Step 2) Clone the app and give access to:</h4>

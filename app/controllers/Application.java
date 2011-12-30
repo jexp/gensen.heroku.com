@@ -4,16 +4,13 @@ import com.dmurph.tracking.AnalyticsConfigData;
 import com.dmurph.tracking.JGoogleAnalyticsTracker;
 import com.google.gson.Gson;
 import com.heroku.api.model.App;
-import com.heroku.api.request.app.AppInfo;
 import domain.Category;
 import domain.Tag;
-import domain.User;
 import helpers.EmailHelper;
 import helpers.HerokuAppSharingHelper;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.index.Index;
-import org.neo4j.rest.graphdb.RestAPI;
 import org.neo4j.rest.graphdb.RestGraphDatabase;
 import org.neo4j.rest.graphdb.query.RestCypherQueryEngine;
 import play.data.validation.Validation;
@@ -43,9 +40,9 @@ public class Application extends Controller {
 
     private static final RestCypherQueryEngine queryEngine = new RestCypherQueryEngine(gdb.getRestAPI());
 
-    public static void index() {
+    public static void index(String category, String tag) {
         final Map<String, Category> categories = loadCategories();
-        final Collection<AppInfo> apps = loadApps(categories).values();
+        final Collection<domain.AppInfo> apps = loadApps(categories,category,tag).values();
         render(categories, apps);
     }
 
@@ -74,61 +71,28 @@ public class Application extends Controller {
         }
         return categories;
     }
-    
-    static class AppInfo {
-        Long id;
-        String name;
-        String url;
-        String repository;
-        Set<String> tags = new TreeSet<String>();
 
-        AppInfo(Long id, String name, String url, String repository) {
-            this.id = id;
-            this.name = name;
-            this.url = url;
-            this.repository = repository;
-        }
-
-        public void addTags(Collection<String> tags) {
-            this.tags.addAll(tags);
-        }
-
-        public Long getId() {
-            return id;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public String getUrl() {
-            return url;
-        }
-
-        public String getRepository() {
-            return repository;
-        }
-    }
-    private static Map<Long, AppInfo> loadApps(Map<String, Category> categories) {
+    private static Map<Long, domain.AppInfo> loadApps(Map<String, Category> categories, String category, String tag) {
         final Iterable<Map<String,Object>> result = queryEngine.query(
-                "start app=node:apps('giturl:*') " +
-                "match category-[:TAG]->tag<-[:TAGGED]-app-[?:OWNS]->user " +
-                "return ID(app) as appid, app.name, app.repository, app.herokuapp, collect(tag.tag) as tags " +
-                "order by app.name asc limit 20",null);
-        Map<Long, AppInfo> apps = new LinkedHashMap<Long, AppInfo>();
+                " start app=node:apps('giturl:*') " +
+                " match category-[:TAG]->tag<-[:TAGGED]-app-[?:OWNS]->user " +
+                ((category!=null && tag!=null) ? " where category.category='"+category+"' and tag.tag='"+tag+"'" : "") + // todo fix params
+                " return ID(app) as appid, app.name, app.repository, app.herokuapp, collect(tag.tag) as tags " +
+                " order by app.name asc limit 20",null);
+        Map<Long, domain.AppInfo> apps = new LinkedHashMap<Long, domain.AppInfo>();
         for (Map<String, Object> row : result) {
-            final AppInfo app = createApp(row);
+            final domain.AppInfo app = createApp(row);
             apps.put(app.getId(),app);
         }
         return apps;
     }
 
-    private static AppInfo createApp(Map<String, Object> row) {
+    private static domain.AppInfo createApp(Map<String, Object> row) {
         final String appName = row.get("app.name").toString();
         final Long appId = ((Number)row.get("appid")).longValue();
-        final AppInfo app = new AppInfo(appId, appName,row.get("app.herokuapp").toString(),row.get("app.repository").toString());
+        final domain.AppInfo app = new domain.AppInfo(appId, appName,row.get("app.herokuapp").toString(),row.get("app.repository").toString());
         final String tagsString = row.get("tags").toString();
-        app.addTags(Arrays.asList(tagsString.substring(1,tagsString.length()-1).split(",\\s*")));
+        app.addTags(Arrays.asList(tagsString.substring(1, tagsString.length() - 1).split(",\\s*")));
         return app;
     }
 
@@ -144,7 +108,7 @@ String framework, String build, String addOn, String email) {
             }
             addNewTags(type, language, framework, build, appNode);
         }
-        index();
+        index(null, null);
     }
 
     private static void addNewTags(String type, String language, String framework, String build, Node appNode) {
