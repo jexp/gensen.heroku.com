@@ -3,10 +3,12 @@ package controllers;
 import com.dmurph.tracking.AnalyticsConfigData;
 import com.dmurph.tracking.JGoogleAnalyticsTracker;
 import com.google.gson.Gson;
+import com.heroku.api.model.Addon;
 import com.heroku.api.model.App;
 import domain.Category;
 import domain.Tag;
 import helpers.EmailHelper;
+import helpers.HerokuApi;
 import helpers.HerokuAppSharingHelper;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
@@ -100,8 +102,20 @@ public class Application extends Controller {
     }
 
 
-    private static Map<String, Category> loadCategories() {
-        final Iterable<Map<String,Object>> result = queryEngine.query("start n=node(0) match n-[:CATEGORY]->category-[?:TAG]->tag<-[?:TAGGED]-() return category, category.category, tag, tag.tag? , count(*) as count", null);
+    private static Map<String, Category> loadCategories(String...categoryNames) {
+        String where="";
+        if (categoryNames.length>0) {
+            for (String category : categoryNames) {
+                if (where.length()>0) where += " OR ";
+                where += "category.category ='"+category+"'";
+            }
+            where = " where ("+where+") ";
+        }
+        final Iterable<Map<String,Object>> result = queryEngine.query("start n=node(0) " +
+                " match n-[:CATEGORY]->category-[?:TAG]->tag<-[?:TAGGED]-() " +
+                where +
+                " return category, category.category, tag, tag.tag? , count(*) as count",
+                null);
         Map<String,Category> categories=new HashMap<String, Category>();
         for (Map<String, Object> row : result) {
             final String category = row.get("category.category").toString();
@@ -217,9 +231,35 @@ String framework, String build, String addOn, String email) {
         return category;
     }
 
+    public static void addAddons() {
+        final HerokuApi herokuApi = new HerokuApi();
+        final Map<String, Category> categories = loadCategories("add-on");
+        final Category category = categories.get("add-on");
+        final Node categoryNode = category.getNode();
+        final List<Addon> addons = herokuApi.listAddons();
+        for (Addon addon : addons) {
+            String name = addon.getName();
+            if (name.contains(":")) name = name.substring(0,name.indexOf(":"));
+            if (category.containsTag(name)) continue;
+            /*
+            final String price = String.format("%.2f USD%s", addon.getPrice_cents() / 100f, addon.getPrice_unit() != null ? "/" + addon.getPrice_unit() : "");
+            final Map<String, Object> properties = map("tag", name, "description", addon.getDescription(), "price", price, "state", addon.getState());
+            if (addon.getUrl()!=null) {
+                properties.put("url",addon.getUrl());
+            }
+            System.err.println("Adding Addon "+name+" props "+properties);
+            final Node addonNode = gdb.getRestAPI().createNode(properties);
+            categoryNode.createRelationshipTo(addonNode, RelTypes.TAG);
+            category.addTag(addonNode,name,1);
+            */
+            createTagNode(category,name);
+        }
+    }
+
     private static Node createTagNode(Category category, String tagName) {
         final Node tagNode = gdb.getRestAPI().createNode(map("tag", tagName));
         category.getNode().createRelationshipTo(tagNode, RelTypes.TAG);
+        category.addTag(tagNode, tagName, 0);
         return tagNode;
     }
 
