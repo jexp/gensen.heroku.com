@@ -5,7 +5,7 @@
 # Home page
 GET     /                                       Application.index
 
-POST    /                                       Application.shareApp
+POST    /                                       ShareApp.shareApp
 GET     /add                                    Application.add
 POST    /reindex                                Application.reindex
 POST    /add_addons                             Application.addAddons
