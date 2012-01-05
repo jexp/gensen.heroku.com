@@ -271,7 +271,7 @@ label.app {
     #{list items:apps, as:'app'}
         <div class="row">
             <a href="${app.url}" target="_blank"><label class="app"><input type="radio" name="app" value="${app.name}"/>${app.name}</label></a>
-            (<a href="${app.repository}">Source Code</a>, ${app.tags})
+            (<a href="${app.repository}">Source Code</a>,<a href="/show/${app.id}">show</a>, ${app.tags})
         </div>
     #{/list}
     <div class="row"><label class="app"><input id="customGitUrlRadio" type="radio" name="app" value="Custom git url"/>Custom git url</label> <input id="customGitUrl" type="text" title="git://github.com/foo/bar.git" style="display: none"/></div>

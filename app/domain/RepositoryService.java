@@ -10,7 +10,6 @@ import org.neo4j.rest.graphdb.query.RestCypherQueryEngine;
 
 import java.util.*;
 
-import static java.lang.System.getenv;
 import static org.neo4j.helpers.collection.MapUtil.map;
 
 /**
@@ -25,12 +24,15 @@ public class RepositoryService {
     private static final String STACK = "stack";
     private static final String NAME = "name";
     private static final String EMAIL = "email";
+    private static final String ID = "id";
+    private static final String MAX_ID = "max_id";
 
     private  final RestGraphDatabase gdb;
     private  final RestCypherQueryEngine queryEngine;
     private  final Index<Node> userIndex;
     private  final Index<Node> appsIndex;
     private  final Index<Node> searchIndex;
+    
 
     public RepositoryService(String url, String login, String password) {
         this.gdb = new RestGraphDatabase(url, login, password);
@@ -44,7 +46,9 @@ public class RepositoryService {
         final Node foundApp = appsIndex.get(GIT_URL, giturl).getSingle();
         if (foundApp == null) {
             Node userNode = getOrCreateUser(email);
-            final Node appNode = gdb.getRestAPI().createNode(map(NAME, name, REPOSITORY, repository, GIT_URL, giturl, HEROKUAPP, herokuapp, STACK, stack));
+            final Long id = nextId();
+            final Node appNode = gdb.getRestAPI().createNode(map(ID, id, NAME, name, REPOSITORY, repository, GIT_URL, giturl, HEROKUAPP, herokuapp, STACK, stack));
+            appsIndex.add(appNode,ID,id);
             appsIndex.add(appNode, GIT_URL,giturl);
             searchIndex.add(appNode, NAME,name);
             if (userNode!=null) {
@@ -54,9 +58,24 @@ public class RepositoryService {
         }
     }
 
+    public AppInfo getAppInfo(Long id) {
+        if (id == null) return null;
+        final Map<Long, AppInfo> appInfo = loadApps(null, id);
+        if (appInfo==null || appInfo.isEmpty()) return null;
+        return appInfo.get(id);
+    }
+
+    private Long nextId() {
+        Long maxId = (Long) gdb.getReferenceNode().getProperty(MAX_ID,0) + 1;
+        gdb.getReferenceNode().setProperty(MAX_ID,maxId);
+        return maxId;
+    }
+
     public List<String> reindexApps() {
         final IndexHits<Node> nodes = appsIndex.query(GIT_URL+":*");
         List<String> names=new ArrayList<String>();
+        long maxId=-1;
+        List<Node> nodesWithoutId = new ArrayList<Node>();
         for (Node node : nodes) {
             searchIndex.remove(node);
             if (node.hasProperty(NAME)) {
@@ -65,10 +84,25 @@ public class RepositoryService {
                 names.add(name);
                 System.err.println("added "+name);
             }
+            if (node.hasProperty(ID)) {
+                Long id= (Long) node.getProperty(ID);
+                maxId = Math.max(maxId,id);
+            } else {
+                nodesWithoutId.add(node);
+            }
         }
+        long id = maxId+1;
+        for (Node node : nodesWithoutId) {
+            node.setProperty(ID,id);
+            appsIndex.remove(node, ID, id);
+            appsIndex.add(node, ID,id);
+            id++;
+        }
+        gdb.getReferenceNode().setProperty(MAX_ID,id);
         return names;
     }
 
+    
     private  Node getOrCreateUser(String email) {
         if (email==null || email.trim().isEmpty()) return null;
         final Node user = userIndex.get(EMAIL, email).getSingle();
@@ -104,9 +138,9 @@ public class RepositoryService {
         return categories;
     }
 
-    public Map<Long, domain.AppInfo> loadApps(Map<String, Category> categories, String query) {
-        final String where = getWhere(categories);
-        final String start = getStart(query);
+    public Map<Long, domain.AppInfo> loadApps(Map<String, Category> categories, Object query) {
+        final String where = loadAppsWhere(categories);
+        final String start = loadAppsStart(query);
         final String statement = start +
                 " match category-[:TAG]->tag<-[:TAGGED]-app-[?:OWNS]->user " +
                 ((where.isEmpty()) ? "" : " where " + where) +
@@ -123,12 +157,17 @@ public class RepositoryService {
         return apps;
     }
 
-    private  String getStart(String query) {
-        return (query==null||query.isEmpty() ? " start app=node:apps('giturl:*') " :
-        " start app=node:search('name:"+query+"') ");
+    private  String loadAppsStart(Object query) {
+        if (query instanceof Number) return " start app=node:apps(id={query}) "; 
+        if (isQueryString(query)) return " start app=node:search('name:"+query+"') ";
+        return " start app=node:apps('id:*') ";
     }
 
-    private  String getWhere(Map<String, Category> categories) {
+    private boolean isQueryString(Object query) {
+        return query instanceof String || !((String)query).trim().isEmpty();
+    }
+
+    private  String loadAppsWhere(Map<String, Category> categories) {
         if (categories==null || categories.isEmpty()) return "";
         StringBuilder sb = new StringBuilder();
         for (Category category : categories.values()) {
@@ -167,6 +206,7 @@ public class RepositoryService {
     }
 
     enum RelTypes implements RelationshipType { TAG, CATEGORY, RATED, TAGGED, OWNS }
+
     private  void addNewTags(Map<String, Category> categories, String categoryName, String tagString, Node appNode) {
         final Category category = getCategory(categories, categoryName);
         if (category == null) return;

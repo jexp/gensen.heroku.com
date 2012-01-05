@@ -6,6 +6,7 @@
 GET     /                                       Application.index
 
 POST    /                                       ShareApp.shareApp
+GET    /show/{id}                               Application.show
 GET     /add                                    Application.add
 POST    /reindex                                Application.reindex
 POST    /add_addons                             Application.addAddons

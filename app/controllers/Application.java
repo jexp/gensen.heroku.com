@@ -2,6 +2,7 @@ package controllers;
 
 import com.google.gson.Gson;
 import com.heroku.api.model.Addon;
+import domain.AppInfo;
 import domain.Category;
 import domain.RepositoryService;
 import helpers.HerokuApi;
@@ -33,6 +34,11 @@ public class Application extends Controller {
 
     private static void index() {
         index(null, null);
+    }
+    
+    public static void show(Long id) {
+        final AppInfo app = service.getAppInfo(id);
+        render(app);
     }
 
     public static void index(String tags, String q) {

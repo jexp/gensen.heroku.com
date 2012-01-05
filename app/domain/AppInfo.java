@@ -1,8 +1,6 @@
 package domain;
 
-import java.util.Collection;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 /**
  * @author mh
@@ -13,8 +11,10 @@ public class AppInfo {
     String name;
     String url;
     String repository;
+    String gitUrl;
     Set<String> tags = new TreeSet<String>();
-
+    List<Category> categories=new ArrayList<Category>(); // todo
+    
     public AppInfo(Long id, String name, String url, String repository) {
         this.id = id;
         this.name = name;
@@ -40,5 +40,17 @@ public class AppInfo {
 
     public String getRepository() {
         return repository;
+    }
+
+    public String getGitUrl() {
+        return gitUrl;
+    }
+
+    public List<Category> getCategories() {
+        return categories;
+    }
+
+    public Set<String> getTags() {
+        return tags;
     }
 }
