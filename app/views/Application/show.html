@@ -1,5 +1,5 @@
 #{extends 'main.html' /}
-#{set title:'Add an Application to the Heroku Template Repository' /}
+#{set title:'Update your Application at the Heroku Template Repository' /}
 #{set 'moreStyles'}
 
 <link rel="stylesheet" href="@{'/public/colorbox.css'}" />
@@ -55,29 +55,29 @@ a.tag:hover {
 #{/set}
 
 <div style="max-width: 660px; padding-top: 40px">
-<h4>Add your Application</h4>
+<h4>Update your Application</h4>
 #{if flash.error}
     <p style="color:#c00">
         ${flash.error}
     </p>
 #{/if}
 <form action="@{Application.addApp()}" method="POST">
-   Your Heroku Email: <input name="email" type="email"/><br/>
+   <input name="id" type="hidden" value="${app.id}"/>
    App Name: <input name="name" value="${app.name}"/><br/>
-   Heroku Demo: <input name="herokuapp" type="url" hint="http://appname.herokuapp.com" value="${app.url}"/><br/>
+   Heroku Demo Page: <input name="herokuapp" type="url" hint="http://appname.herokuapp.com" value="${app.url}"/><br/>
     Stack: <select name="stack"/>
-	<option value="cedar" selected="selected">Cedar</option>
-	<option value="bamboo">Bamboo</option>
-	<option value="aspen">Aspen</option>
+	<option value="cedar" #{if app.stack=="cedar"}selected="selected"#{/if}>Cedar</option>
+	<option value="bamboo" #{if app.stack=="bamboo"}selected="selected"#{/if}>Bamboo</option>
+	<option value="aspen" #{if app.stack=="aspen"}selected="selected"#{/if}>Aspen</option>
    </select><br/>
    Source Link: <input name="repository"  type="url" hint="http://github.com/<you>/appname" value="${app.repository}"/><br/>
-   Repository Git URL: <input name="giturl" type="url" hint="git://github.com/<you>/<appname>.git" value="${app.repository}"/><br/>
-   Application Type: <input id="type" name="type"/> #{list items:categories['type']?.tags, as:'tag'} <a style="font-size:${java.lang.Math.sqrt(tag.count)+10}" class="tag" onclick="add_tag('type','${tag.name}')">${tag.name}</a>  #{/list}<br/>
-   Language: <input id="language" name="language"/>#{list items:categories['language']?.tags, as:'tag'} <a style="font-size:${java.lang.Math.sqrt(tag.count)+10}" class="tag" onclick="add_tag('language','${tag.name}')">${tag.name}</a>  #{/list}<br/>
-   Framework: <input id="framework" name="framework"/> #{list items:categories['framework']?.tags, as:'tag'} <a style="font-size:${java.lang.Math.sqrt(tag.count)+10}" class="tag" onclick="add_tag('framework','${tag.name}')">${tag.name}</a>  #{/list}<br/>
-   Build Tool: <input id="build" name="build"/> #{list items:categories['build']?.tags, as:'tag'} <a style="font-size:${java.lang.Math.sqrt(tag.count)+10}" class="tag" onclick="add_tag('build','${tag.name}')">${tag.name}</a>  #{/list}<br/>
-   Add-On: <input id="add-on" name="add-on"/> #{list items:categories['add-on']?.tags, as:'tag'} <a style="font-size:${java.lang.Math.sqrt(tag.count)+10}" class="tag" onclick="add_tag('add-on','${tag.name}')">${tag.name}</a>  #{/list}<br/>
-   <input type="submit" name="submit" value="Add Application"/>
+   Repository Git URL: <input name="giturl" type="url" hint="git://github.com/<you>/<appname>.git" value="${app.gitUrl}"/><br/>
+   Application Type: <input id="type" name="type" value="#{list items:app.categories['type']?.tags, as:'tag'} ${tag.name}  #{/list}"/> #{list items:categories['type']?.tags, as:'tag'} <a class="tag" onclick="add_tag('type','${tag.name}')">${tag.name}</a>  #{/list}<br/>
+   Language: <input id="language" name="language" value="#{list items:app.categories['language']?.tags, as:'tag'} ${tag.name}  #{/list}"/>#{list items:categories['language']?.tags, as:'tag'} <a class="tag" onclick="add_tag('language','${tag.name}')">${tag.name}</a>  #{/list}<br/>
+   Framework: <input id="framework" name="framework" value="#{list items:app.categories['framework']?.tags, as:'tag'} ${tag.name}  #{/list}"/> #{list items:categories['framework']?.tags, as:'tag'} <a class="tag" onclick="add_tag('framework','${tag.name}')">${tag.name}</a>  #{/list}<br/>
+   Build Tool: <input id="build" name="build" value="#{list items:app.categories['build']?.tags, as:'tag'} ${tag.name}  #{/list}"/> #{list items:categories['build']?.tags, as:'tag'} <a class="tag" onclick="add_tag('build','${tag.name}')">${tag.name}</a>  #{/list}<br/>
+   Add-On: <input id="add-on" name="add-on" value="#{list items:app.categories['add-on']?.tags, as:'tag'} ${tag.name}  #{/list}"/> #{list items:categories['add-on']?.tags, as:'tag'} <a class="tag" onclick="add_tag('add-on','${tag.name}')">${tag.name}</a>  #{/list}<br/>
+   <input type="submit" name="submit" value="Save Application"/>
 </form>
 
 <a href="@{Application.index()}">Back to index</a>

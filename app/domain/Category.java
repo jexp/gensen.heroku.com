@@ -40,4 +40,8 @@ public class Category {
     public Tag getTag(String tagName) {
         return tags.get(tagName);
     }
+
+    public Collection<String> getTagNames() {
+        return tags.keySet();
+    }
 }

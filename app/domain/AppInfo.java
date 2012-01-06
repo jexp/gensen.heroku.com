@@ -11,19 +11,17 @@ public class AppInfo {
     String name;
     String url;
     String repository;
+    private final String stack;
     String gitUrl;
-    Set<String> tags = new TreeSet<String>();
-    List<Category> categories=new ArrayList<Category>(); // todo
+    Map<String,Category> categories=new HashMap<String, Category>(); // todo
     
-    public AppInfo(Long id, String name, String url, String repository) {
+    public AppInfo(Long id, String name, String url, String repository, String stack, String gitUrl) {
         this.id = id;
         this.name = name;
         this.url = url;
         this.repository = repository;
-    }
-
-    public void addTags(Collection<String> tags) {
-        this.tags.addAll(tags);
+        this.stack = stack;
+        this.gitUrl = gitUrl;
     }
 
     public Long getId() {
@@ -46,11 +44,24 @@ public class AppInfo {
         return gitUrl;
     }
 
-    public List<Category> getCategories() {
+    public String getStack() {
+        return stack;
+    }
+
+    public Map<String, Category> getCategories() {
         return categories;
     }
 
-    public Set<String> getTags() {
-        return tags;
+    public List<String> getTags() {
+        List<String> result=new ArrayList<String>();
+        for (Category category : categories.values()) {
+            result.addAll(category.getTagNames());
+        }
+        return result;
+    }
+
+    public void addTag(String categoryName, String tag) {
+        if (!categories.containsKey(categoryName)) categories.put(categoryName,new Category(categoryName,null));
+        categories.get(categoryName).addTag(null,tag,0);
     }
 }

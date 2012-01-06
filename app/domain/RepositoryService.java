@@ -142,12 +142,13 @@ public class RepositoryService {
         final String where = loadAppsWhere(categories);
         final String start = loadAppsStart(query);
         final String statement = start +
-                " match category-[:TAG]->tag<-[:TAGGED]-app-[?:OWNS]->user " +
+                " match p = category-[:TAG]->tag, tag<-[:TAGGED]-app-[?:OWNS]->user " +
                 ((where.isEmpty()) ? "" : " where " + where) +
-                " return ID(app) as appid, app.name, app.repository, app.herokuapp, collect(tag.tag) as tags " +
+                " return app.id as appid, app.name, app.giturl, app.stack, app.repository, app.herokuapp, " +
+                " collect(extract(n in NODES(p) : coalesce(n.tag?,n.category?))) as tags " +
                 " order by app.name asc limit 20";
         final Iterable<Map<String,Object>> result = queryEngine.query(
-                statement,null);
+                statement,null); // map("query",query.toString())
         System.err.println(statement);
         Map<Long, domain.AppInfo> apps = new LinkedHashMap<Long, AppInfo>();
         for (Map<String, Object> row : result) {
@@ -158,13 +159,13 @@ public class RepositoryService {
     }
 
     private  String loadAppsStart(Object query) {
-        if (query instanceof Number) return " start app=node:apps(id={query}) "; 
+        if (query instanceof Number) return " start app=node:apps(id='"+query+"') ";
         if (isQueryString(query)) return " start app=node:search('name:"+query+"') ";
         return " start app=node:apps('id:*') ";
     }
 
     private boolean isQueryString(Object query) {
-        return query instanceof String || !((String)query).trim().isEmpty();
+        return query instanceof String && !((String)query).trim().isEmpty();
     }
 
     private  String loadAppsWhere(Map<String, Category> categories) {
@@ -188,12 +189,19 @@ public class RepositoryService {
     private  domain.AppInfo createApp(Map<String, Object> row) {
         final String appName = row.get("app.name").toString();
         final Long appId = ((Number)row.get("appid")).longValue();
-        final domain.AppInfo app = new domain.AppInfo(appId, appName,row.get("app.herokuapp").toString(),row.get("app.repository").toString());
-        final String tagsString = row.get("tags").toString();
-        app.addTags(Arrays.asList(tagsString.substring(1, tagsString.length() - 1).split(COMMA_SPLIT)));
+        final domain.AppInfo app = new domain.AppInfo(appId, appName,row.get("app.herokuapp").toString(),row.get("app.repository").toString(),row.get("app.stack").toString(),row.get("app.giturl").toString());
+        addTags(row, app);
         return app;
     }
 
+    private void addTags(Map<String, Object> row, AppInfo app) {
+        final String tagsString = row.get("tags").toString();
+        for (String tagPath : tagsString.substring(1, tagsString.length() - 2).split("(\\), )?List\\(")) {
+            if (tagPath.isEmpty()) continue;
+            final String[] pair = tagPath.split(COMMA_SPLIT);
+            app.addTag(pair[0],pair[1]);
+        }
+    }
 
 
     private  void addNewTags(String type, String language, String framework, String build, String addOn, Node appNode) {
@@ -203,6 +211,10 @@ public class RepositoryService {
         addNewTags(categories,"framework",framework,appNode);
         addNewTags(categories,"build",build,appNode);
         addNewTags(categories,"add-on",addOn,appNode);
+    }
+
+    public void updateApplication(Long id, String name, String repository, String giturl, String herokuapp, String stack, String type, String language, String framework, String build, String addOn) {
+
     }
 
     enum RelTypes implements RelationshipType { TAG, CATEGORY, RATED, TAGGED, OWNS }
