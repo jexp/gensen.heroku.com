@@ -6,6 +6,8 @@ import domain.AppInfo;
 import domain.Category;
 import domain.RepositoryService;
 import helpers.HerokuApi;
+import org.neo4j.rest.graphdb.RestGraphDatabase;
+import org.neo4j.rest.graphdb.query.RestCypherQueryEngine;
 import play.mvc.Controller;
 import play.mvc.Http;
 
@@ -18,7 +20,8 @@ import static java.lang.System.getenv;
 
 public class Application extends Controller {
 
-    private static final RepositoryService service = new RepositoryService(neo4jUrl(), getenv("NEO4J_LOGIN"), getenv("NEO4J_PASSWORD"));
+    private static final RestGraphDatabase gdb = new RestGraphDatabase(neo4jUrl(), getenv("NEO4J_LOGIN"), getenv("NEO4J_PASSWORD"));
+    private static final RepositoryService service = new RepositoryService(gdb, new RestCypherQueryEngine(gdb.getRestAPI()));
     private static final String COMMA_SPLIT = "\\s*,\\s*";
 
     private static String neo4jUrl() {
@@ -76,7 +79,7 @@ public class Application extends Controller {
     }
     public static void updateApp(Long id,String name, String repository, String giturl, String herokuapp, String stack, String type, String language,
                               String framework, String build, String addOn) {
-        service.updateApplication(id,name, repository, giturl, herokuapp, stack, type, language, framework, build, addOn);
+        service.updateApplication(id, name, repository, giturl, herokuapp, stack, type, language, framework, build, addOn);
         index();
     }
 

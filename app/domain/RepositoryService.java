@@ -1,12 +1,15 @@
 package domain;
 
+import helpers.ProcessException;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.index.impl.lucene.LuceneIndexImplementation;
-import org.neo4j.rest.graphdb.RestGraphDatabase;
-import org.neo4j.rest.graphdb.query.RestCypherQueryEngine;
+import org.neo4j.rest.graphdb.query.QueryEngine;
+import org.neo4j.rest.graphdb.util.QueryResult;
 
 import java.util.*;
 
@@ -18,25 +21,27 @@ import static org.neo4j.helpers.collection.MapUtil.map;
  */
 public class RepositoryService {
     private static final String COMMA_SPLIT = "\\s*,\\s*";
-    private static final String GIT_URL = "giturl";
-    private static final String REPOSITORY = "repository";
+    static final String GIT_URL = "giturl";
+    static final String REPOSITORY = "repository";
     private static final String HEROKUAPP = "herokuapp";
     private static final String STACK = "stack";
-    private static final String NAME = "name";
+    static final String NAME = "name";
     private static final String EMAIL = "email";
-    private static final String ID = "id";
+    static final String ID = "id";
     private static final String MAX_ID = "max_id";
 
-    private  final RestGraphDatabase gdb;
-    private  final RestCypherQueryEngine queryEngine;
+    private  final GraphDatabaseService gdb;
+    private  final QueryEngine queryEngine;
     private  final Index<Node> userIndex;
     private  final Index<Node> appsIndex;
     private  final Index<Node> searchIndex;
-    
+    public static final String CATEGORY = "category";
+    public static final String TAG = "tag";
 
-    public RepositoryService(String url, String login, String password) {
-        this.gdb = new RestGraphDatabase(url, login, password);
-        queryEngine = new RestCypherQueryEngine(gdb.getRestAPI());
+
+    public RepositoryService(final GraphDatabaseService graphDatabase, final QueryEngine queryEngine) {
+        this.gdb = graphDatabase;
+        this.queryEngine = queryEngine;
         userIndex = gdb.index().forNodes("users");
         appsIndex = gdb.index().forNodes("apps");
         searchIndex = gdb.index().forNodes("search", LuceneIndexImplementation.FULLTEXT_CONFIG);
@@ -47,15 +52,32 @@ public class RepositoryService {
         if (foundApp == null) {
             Node userNode = getOrCreateUser(email);
             final Long id = nextId();
-            final Node appNode = gdb.getRestAPI().createNode(map(ID, id, NAME, name, REPOSITORY, repository, GIT_URL, giturl, HEROKUAPP, herokuapp, STACK, stack));
-            appsIndex.add(appNode,ID,id);
-            appsIndex.add(appNode, GIT_URL,giturl);
-            searchIndex.add(appNode, NAME,name);
+            final Node appNode = gdb.createNode();
+            updateProperty(appNode,ID, id,appsIndex);
             if (userNode!=null) {
                 userNode.createRelationshipTo(appNode,RelTypes.OWNS);
             }
-            addNewTags(type, language, framework, build, addOn, appNode);
+            appsIndex.add(appNode,ID,id);
+            update(appNode, name, repository, giturl, herokuapp, stack);
+            addNewTags(appNode, type, language, framework, build, addOn);
         }
+    }
+
+    private void update(Node appNode, String name, String repository, String gitUrl, String herokuApp, String stack) {
+        updateProperty(appNode,NAME, name,searchIndex);
+        updateProperty(appNode,GIT_URL, gitUrl,appsIndex);
+        updateProperty(appNode, REPOSITORY, repository,null);
+        updateProperty(appNode, HEROKUAPP, herokuApp,null);
+        updateProperty(appNode, STACK, stack,null);
+    }
+
+    private void updateProperty(Node node, String prop, Object value, Index<Node> index) {
+        final Object existing = node.getProperty(prop, null);
+        if (existing!=null && existing.equals(value)) return;
+        node.setProperty(prop,value);
+        if (index==null) return;
+        if (existing!=null) index.remove(node,prop,existing);
+        index.add(node,prop,value);
     }
 
     public AppInfo getAppInfo(Long id) {
@@ -66,7 +88,7 @@ public class RepositoryService {
     }
 
     private Long nextId() {
-        Long maxId = (Long) gdb.getReferenceNode().getProperty(MAX_ID,0) + 1;
+        Long maxId = (Long) gdb.getReferenceNode().getProperty(MAX_ID,0L) + 1;
         gdb.getReferenceNode().setProperty(MAX_ID,maxId);
         return maxId;
     }
@@ -107,8 +129,8 @@ public class RepositoryService {
         if (email==null || email.trim().isEmpty()) return null;
         final Node user = userIndex.get(EMAIL, email).getSingle();
         if (user!=null) return user;
-        final Node newUser = gdb.getRestAPI().createNode(map(EMAIL, email));
-        userIndex.add(newUser, EMAIL,email);
+        final Node newUser = gdb.createNode();
+        updateProperty(newUser, EMAIL, email, userIndex);
         return newUser;
     }
 
@@ -204,22 +226,29 @@ public class RepositoryService {
     }
 
 
-    private  void addNewTags(String type, String language, String framework, String build, String addOn, Node appNode) {
+    private  void addNewTags(Node appNode, String type, String language, String framework, String build, String addOn) {
         final Map<String, Category> categories = loadCategories();
-        addNewTags(categories,"type",type,appNode);
-        addNewTags(categories,"language",language,appNode);
-        addNewTags(categories,"framework",framework,appNode);
-        addNewTags(categories,"build",build,appNode);
-        addNewTags(categories,"add-on",addOn,appNode);
+        final Map<Node, Relationship> existingTags = loadExistingTags(appNode);
+        addNewTags(categories,"type",type,appNode,existingTags);
+        addNewTags(categories,"language",language,appNode, existingTags);
+        addNewTags(categories,"framework",framework,appNode, existingTags);
+        addNewTags(categories,"build",build,appNode, existingTags);
+        addNewTags(categories,"add-on",addOn,appNode, existingTags);
+        for (Relationship relationship : existingTags.values()) {
+            relationship.delete();
+        }
     }
 
     public void updateApplication(Long id, String name, String repository, String giturl, String herokuapp, String stack, String type, String language, String framework, String build, String addOn) {
-
+        final Node app = appsIndex.get(ID, id).getSingle();
+        if (app ==null) throw new ProcessException("Application with id "+id+" not found");
+        update(app,name,repository,giturl, herokuapp,stack);
+        addNewTags(app, type, language, framework, build, addOn);
     }
 
     enum RelTypes implements RelationshipType { TAG, CATEGORY, RATED, TAGGED, OWNS }
 
-    private  void addNewTags(Map<String, Category> categories, String categoryName, String tagString, Node appNode) {
+    private  void addNewTags(Map<String, Category> categories, String categoryName, String tagString, Node appNode, Map<Node, Relationship> existingTags) {
         final Category category = getCategory(categories, categoryName);
         if (category == null) return;
 
@@ -234,8 +263,19 @@ public class RepositoryService {
                 System.err.println("Error loading or creating tag: "+tagName);
                 continue;
             }
-            appNode.createRelationshipTo(tagNode,RelTypes.TAGGED);
+            if (existingTags.remove(tagNode)!=null) {
+                appNode.createRelationshipTo(tagNode,RelTypes.TAGGED);
+            }
         }
+    }
+
+    Map<Node, Relationship> loadExistingTags(Node appNode) {
+        final Map<Node,Relationship> existingTags = new HashMap<Node, Relationship>();
+        final QueryResult<Map<String,Object>> result = queryEngine.query("start n=node({" + ID + "}) match n-[r:TAGGED]->tag return tag,r", map(ID, appNode.getId()));
+        for (Map<String, Object> row : result) {
+            existingTags.put((Node)row.get("tag"), (Relationship)row.get("r"));
+        }
+        return existingTags;
     }
 
     private Category getCategory(Map<String, Category> categories, String categoryName) {
@@ -248,7 +288,8 @@ public class RepositoryService {
     }
 
     public Node createTagNode(Category category, String tagName) {
-        final Node tagNode = gdb.getRestAPI().createNode(map("tag", tagName));
+        final Node tagNode = gdb.createNode();
+        updateProperty(tagNode, "tag", tagName,null);
         category.getNode().createRelationshipTo(tagNode, RelTypes.TAG);
         category.addTag(tagNode, tagName, 0);
         return tagNode;
