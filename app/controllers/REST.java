@@ -45,15 +45,15 @@ public class REST extends Controller {
     }
 
     public static void addApp(Map<String,String> data) {
-        final Long id = service.addApplication(data);
+        final Integer id = service.addApplication(data);
         created("/apps/" + id);
     }
 
-    public static void getApp(Long id) {
+    public static void getApp(Integer id) {
         renderJSON(service.getAppInfo(id));
     }
 
-    public static void updateApp(Long id,String name, String repository, String giturl, String herokuapp, String stack, String type, String language,
+    public static void updateApp(Integer id,String name, String repository, String giturl, String herokuapp, String stack, String type, String language,
                               String framework, String build, String addOn) {
         try {
             service.updateApplication(id, name, repository, giturl, herokuapp, stack, type, language, framework, build, addOn);

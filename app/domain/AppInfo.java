@@ -7,7 +7,7 @@ import java.util.*;
  * @since 30.12.11
  */
 public class AppInfo {
-    Long id;
+    Integer id;
     String name;
     String url;
     String repository;
@@ -15,7 +15,7 @@ public class AppInfo {
     String gitUrl;
     Map<String,Category> categories=new HashMap<String, Category>(); // todo
     
-    public AppInfo(Long id, String name, String url, String repository, String stack, String gitUrl) {
+    public AppInfo(Integer id, String name, String url, String repository, String stack, String gitUrl) {
         this.id = id;
         this.name = name;
         this.url = url;
@@ -24,7 +24,7 @@ public class AppInfo {
         this.gitUrl = gitUrl;
     }
 
-    public Long getId() {
+    public Integer getId() {
         return id;
     }
 

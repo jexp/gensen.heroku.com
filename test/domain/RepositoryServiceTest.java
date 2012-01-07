@@ -67,7 +67,7 @@ public class RepositoryServiceTest {
         final Node app = appsIndex.get(RepositoryService.GIT_URL, "giturl").getSingle();
         assertNotNull(app);
         assertEquals("repository",app.getProperty(RepositoryService.REPOSITORY));
-        final Long id = (Long) app.getProperty(RepositoryService.ID);
+        final Integer id = (Integer) app.getProperty(RepositoryService.ID);
         System.out.println("id = " + id);
         assertEquals(app,appsIndex.get(RepositoryService.ID,id).getSingle());
         assertEquals(app,searchIndex.query(RepositoryService.NAME+":nam*").getSingle());
@@ -82,7 +82,7 @@ public class RepositoryServiceTest {
     @Test
     public void testGetAppInfo() throws Exception {
         addApplication();
-        final Long id = 1L;
+        final Integer id = 1;
         final AppInfo appInfo = service.getAppInfo(id);
         assertEquals("name",appInfo.getName());
         assertEquals(id,appInfo.getId());
@@ -114,17 +114,17 @@ public class RepositoryServiceTest {
     public void testLoadApps() throws Exception {
         addApplication();
         service.addApplication("name2","repository2","giturl2","herokuapp2","cedar","webapp","ruby","sinatra","rake","graphdb","test@test.de");
-        final Map<Long, AppInfo> apps = service.loadApps(null, "name*");
+        final Map<Integer, AppInfo> apps = service.loadApps(null, "name*");
         assertEquals(2,apps.size());
-        assertEquals("ruby", apps.get(2L).getCategories().get("language").getTag("ruby").getName());
+        assertEquals("ruby", apps.get(2).getCategories().get("language").getTag("ruby").getName());
     }
 
     @Test
     public void testUpdateApplication() throws Exception {
         addApplication();
-        final long id = 1L;
+        final Integer id = 1;
         service.updateApplication(id,"name1","repository","goturl","herokuapp","bamboo","type","ruby, java","rails","maven","neo4j");
-        final Map<Long, AppInfo> allApps = service.loadApps(null, null);
+        final Map<Integer, AppInfo> allApps = service.loadApps(null, null);
         assertEquals(1,allApps.size());
         final AppInfo appInfo = service.getAppInfo(id);
         assertEquals("name1", appInfo.getName());

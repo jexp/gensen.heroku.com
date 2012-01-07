@@ -47,12 +47,12 @@ public class RepositoryService {
         searchIndex = gdb.index().forNodes("search", LuceneIndexImplementation.FULLTEXT_CONFIG);
     }
 
-    public Long addApplication(String name, String repository, String giturl, String herokuapp, String stack, String type, String language, String framework, String build, String addOn, String email) {
+    public Integer addApplication(String name, String repository, String giturl, String herokuapp, String stack, String type, String language, String framework, String build, String addOn, String email) {
         final Node foundApp = appsIndex.get(GIT_URL, giturl).getSingle();
-        if (foundApp != null) return (Long)foundApp.getProperty(ID);
+        if (foundApp != null) return intValue(foundApp.getProperty(ID));
 
         Node userNode = getOrCreateUser(email);
-        final Long id = nextId();
+        final Integer id = nextId();
         final Node appNode = gdb.createNode();
         updateProperty(appNode,ID, id,appsIndex);
         if (userNode!=null) {
@@ -81,15 +81,15 @@ public class RepositoryService {
         index.add(node,prop,value);
     }
 
-    public AppInfo getAppInfo(Long id) {
+    public AppInfo getAppInfo(Integer id) {
         if (id == null) return null;
-        final Map<Long, AppInfo> appInfo = loadApps(null, id);
+        final Map<Integer, AppInfo> appInfo = loadApps(null, id);
         if (appInfo==null || appInfo.isEmpty()) return null;
         return appInfo.get(id);
     }
 
-    private Long nextId() {
-        Long maxId = (Long) gdb.getReferenceNode().getProperty(MAX_ID,0L) + 1;
+    private Integer nextId() {
+        Integer maxId = intValue(gdb.getReferenceNode().getProperty(MAX_ID, 0L)) + 1;
         gdb.getReferenceNode().setProperty(MAX_ID,maxId);
         return maxId;
     }
@@ -97,7 +97,7 @@ public class RepositoryService {
     public List<String> reindexApps() {
         final IndexHits<Node> nodes = appsIndex.query(GIT_URL+":*");
         List<String> names=new ArrayList<String>();
-        long maxId=-1;
+        int maxId=-1;
         List<Node> nodesWithoutId = new ArrayList<Node>();
         for (Node node : nodes) {
             searchIndex.remove(node);
@@ -108,13 +108,13 @@ public class RepositoryService {
                 System.err.println("added "+name);
             }
             if (node.hasProperty(ID)) {
-                Long id= (Long) node.getProperty(ID);
+                Integer id = intValue(node.getProperty(ID));
                 maxId = Math.max(maxId,id);
             } else {
                 nodesWithoutId.add(node);
             }
         }
-        long id = maxId+1;
+        int id = maxId+1;
         for (Node node : nodesWithoutId) {
             node.setProperty(ID,id);
             appsIndex.remove(node, ID, id);
@@ -165,7 +165,7 @@ public class RepositoryService {
         return categories;
     }
 
-    public Map<Long, domain.AppInfo> loadApps(Map<String, Category> categories, Object query) {
+    public Map<Integer, AppInfo> loadApps(Map<String, Category> categories, Object query) {
         final String where = loadAppsWhere(categories);
         final String start = loadAppsStart(query);
         final String statement = start +
@@ -177,7 +177,7 @@ public class RepositoryService {
         final Iterable<Map<String,Object>> result = queryEngine.query(
                 statement,null); // map("query",query.toString())
         System.err.println(statement);
-        Map<Long, domain.AppInfo> apps = new LinkedHashMap<Long, AppInfo>();
+        Map<Integer, domain.AppInfo> apps = new LinkedHashMap<Integer, AppInfo>();
         for (Map<String, Object> row : result) {
             final domain.AppInfo app = createApp(row);
             apps.put(app.getId(),app);
@@ -215,10 +215,14 @@ public class RepositoryService {
 
     private  domain.AppInfo createApp(Map<String, Object> row) {
         final String appName = row.get("app.name").toString();
-        final Long appId = ((Number)row.get("appid")).longValue();
+        final Integer appId = intValue(row.get("appid"));
         final domain.AppInfo app = new domain.AppInfo(appId, appName,row.get("app.herokuapp").toString(),row.get("app.repository").toString(),row.get("app.stack").toString(),row.get("app.giturl").toString());
         addTags(row, app);
         return app;
+    }
+
+    private int intValue(Object value) {
+        return ((Number) value).intValue();
     }
 
     private void addTags(Map<String, Object> row, AppInfo app) {
@@ -244,14 +248,14 @@ public class RepositoryService {
         }
     }
 
-    public void updateApplication(Long id, String name, String repository, String giturl, String herokuapp, String stack, String type, String language, String framework, String build, String addOn) {
+    public void updateApplication(Integer id, String name, String repository, String giturl, String herokuapp, String stack, String type, String language, String framework, String build, String addOn) {
         final Node app = appsIndex.get(ID, id).getSingle();
         if (app ==null) throw new ProcessException("Application with id "+id+" not found");
         update(app,name,repository,giturl, herokuapp,stack);
         addNewTags(app, type, language, framework, build, addOn);
     }
 
-    public Long addApplication(Map<String, String> data) {
+    public Integer addApplication(Map<String, String> data) {
         return addApplication(data.get(NAME),data.get(REPOSITORY),data.get(GIT_URL),data.get(HEROKUAPP),data.get(STACK),data.get("type"),data.get("language"),data.get("framework"),data.get("build"),data.get("add-on"),data.get("email"));
     }
 

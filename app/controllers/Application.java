@@ -39,7 +39,7 @@ public class Application extends Controller {
         index(null, null);
     }
     
-    public static void show(Long id) {
+    public static void show(Integer id) {
         final AppInfo app = service.getAppInfo(id);
         final Map<String, Category> categories = service.loadCategories();
         render(app,categories);
@@ -77,7 +77,7 @@ public class Application extends Controller {
         service.addApplication(name, repository, giturl, herokuapp, stack, type, language, framework, build, addOn, email);
         index();
     }
-    public static void updateApp(Long id,String name, String repository, String giturl, String herokuapp, String stack, String type, String language,
+    public static void updateApp(Integer id,String name, String repository, String giturl, String herokuapp, String stack, String type, String language,
                               String framework, String build, String addOn) {
         service.updateApplication(id, name, repository, giturl, herokuapp, stack, type, language, framework, build, addOn);
         index();
