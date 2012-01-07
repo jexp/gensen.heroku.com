@@ -73,21 +73,21 @@ public class Application extends Controller {
 
 
     public static void addApp(String name, String repository, String giturl, String herokuapp, String stack, String type, String language,
-                              String framework, String build, String addOn, String email) {
-        service.addApplication(name, repository, giturl, herokuapp, stack, type, language, framework, build, addOn, email);
+                              String framework, String build, String addon, String email) {
+        service.addApplication(name, repository, giturl, herokuapp, stack, type, language, framework, build, addon, email);
         index();
     }
     public static void updateApp(Integer id,String name, String repository, String giturl, String herokuapp, String stack, String type, String language,
-                              String framework, String build, String addOn) {
-        service.updateApplication(id, name, repository, giturl, herokuapp, stack, type, language, framework, build, addOn);
+                              String framework, String build, String addon) {
+        service.updateApplication(id, name, repository, giturl, herokuapp, stack, type, language, framework, build, addon);
         index();
     }
 
 
     public static void addAddons() {
         final HerokuApi herokuApi = new HerokuApi();
-        final Map<String, Category> categories = service.loadCategories("add-on");
-        final Category category = categories.get("add-on");
+        final Map<String, Category> categories = service.loadCategories("addon");
+        final Category category = categories.get("addon");
         for (Addon addon : herokuApi.listAddons()) {
             String name = addon.getName();
             if (name.contains(":")) name = name.substring(0, name.indexOf(":"));

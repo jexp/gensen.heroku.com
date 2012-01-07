@@ -242,21 +242,25 @@ public class RepositoryService {
         addNewTags(categories,"language",language,appNode, existingTags);
         addNewTags(categories,"framework",framework,appNode, existingTags);
         addNewTags(categories,"build",build,appNode, existingTags);
-        addNewTags(categories,"add-on",addOn,appNode, existingTags);
+        addNewTags(categories,"addon",addOn,appNode, existingTags);
         for (Relationship relationship : existingTags.values()) {
             relationship.delete();
         }
     }
 
-    public void updateApplication(Integer id, String name, String repository, String giturl, String herokuapp, String stack, String type, String language, String framework, String build, String addOn) {
+    public void updateApplication(Integer id, String name, String repository, String giturl, String herokuapp, String stack, String type, String language, String framework, String build, String addon) {
         final Node app = appsIndex.get(ID, id).getSingle();
         if (app ==null) throw new ProcessException("Application with id "+id+" not found");
         update(app,name,repository,giturl, herokuapp,stack);
-        addNewTags(app, type, language, framework, build, addOn);
+        addNewTags(app, type, language, framework, build, addon);
     }
 
     public Integer addApplication(Map<String, String> data) {
-        return addApplication(data.get(NAME),data.get(REPOSITORY),data.get(GIT_URL),data.get(HEROKUAPP),data.get(STACK),data.get("type"),data.get("language"),data.get("framework"),data.get("build"),data.get("add-on"),data.get("email"));
+        return addApplication(data.get(NAME),data.get(REPOSITORY),data.get(GIT_URL),data.get(HEROKUAPP),data.get(STACK),data.get("type"),data.get("language"),data.get("framework"),data.get("build"),data.get("addon"),data.get("email"));
+    }
+
+    public void updateApplication(Integer id, Map<String, String> data) {
+        updateApplication(id, data.get(NAME),data.get(REPOSITORY),data.get(GIT_URL),data.get(HEROKUAPP),data.get(STACK),data.get("type"),data.get("language"),data.get("framework"),data.get("build"),data.get("addon"));
     }
 
     public enum RelTypes implements RelationshipType { TAG, CATEGORY, RATED, TAGGED, OWNS }

@@ -53,10 +53,9 @@ public class REST extends Controller {
         renderJSON(service.getAppInfo(id));
     }
 
-    public static void updateApp(Integer id,String name, String repository, String giturl, String herokuapp, String stack, String type, String language,
-                              String framework, String build, String addOn) {
+    public static void addApp(Integer id, Map<String,String> data) {
         try {
-            service.updateApplication(id, name, repository, giturl, herokuapp, stack, type, language, framework, build, addOn);
+            service.updateApplication(id, data);
             response.status = Http.StatusCode.NO_RESPONSE;
             location("/apps/" + id);
         } catch(ProcessException pe) {

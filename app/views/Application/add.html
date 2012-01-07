@@ -76,7 +76,7 @@ a.tag:hover {
    Language: <input id="language" name="language"/>#{list items:categories['language']?.tags, as:'tag'} <a style="font-size:${java.lang.Math.sqrt(tag.count)+10}" class="tag" onclick="add_tag('language','${tag.name}')">${tag.name}</a>  #{/list}<br/>
    Framework: <input id="framework" name="framework"/> #{list items:categories['framework']?.tags, as:'tag'} <a style="font-size:${java.lang.Math.sqrt(tag.count)+10}" class="tag" onclick="add_tag('framework','${tag.name}')">${tag.name}</a>  #{/list}<br/>
    Build Tool: <input id="build" name="build"/> #{list items:categories['build']?.tags, as:'tag'} <a style="font-size:${java.lang.Math.sqrt(tag.count)+10}" class="tag" onclick="add_tag('build','${tag.name}')">${tag.name}</a>  #{/list}<br/>
-   Add-On: <input id="add-on" name="add-on"/> #{list items:categories['add-on']?.tags, as:'tag'} <a style="font-size:${java.lang.Math.sqrt(tag.count)+10}" class="tag" onclick="add_tag('add-on','${tag.name}')">${tag.name}</a>  #{/list}<br/>
+   addon: <input id="addon" name="addon"/> #{list items:categories['addon']?.tags, as:'tag'} <a style="font-size:${java.lang.Math.sqrt(tag.count)+10}" class="tag" onclick="add_tag('addon','${tag.name}')">${tag.name}</a>  #{/list}<br/>
    <input type="submit" name="submit" value="Add Application"/>
 </form>
 
