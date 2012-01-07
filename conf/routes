@@ -17,5 +17,17 @@ GET     /favicon.ico                            404
 # Map static resources from the /app/public folder to the /public path
 GET     /public/                                staticDir:public
 
+GET    /apps                                    REST.listApps
+GET    /apps/{id}                               REST.getApp
+POST   /apps/{id}                               REST.updateApp
+PUT    /apps                                    REST.addApp
+GET    /categories                              REST.getCategories
+GET    /categories/{name}                       REST.getCategory
+GET    /categories/{name}/{tag}                 REST.getTag
+
+GET    /users/{email}                           REST.getUser
+PUT    /users/{email}                           REST.addUser
+
 # Catch all
 *       /{controller}/{action}                  {controller}.{action}
+

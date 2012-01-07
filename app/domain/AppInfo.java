@@ -62,6 +62,6 @@ public class AppInfo {
 
     public void addTag(String categoryName, String tag) {
         if (!categories.containsKey(categoryName)) categories.put(categoryName,new Category(categoryName,null));
-        categories.get(categoryName).addTag(null,tag,0);
+        categories.get(categoryName).addTag(null,tag,1);
     }
 }

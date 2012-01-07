@@ -9,9 +9,9 @@ import java.util.*;
 * @since 30.12.11
 */
 public class Category {
-    String name;
-    Map<String,Tag> tags=new TreeMap<String,Tag>();
-    private Node node;
+    private String name;
+    private Map<String,Tag> tags=new TreeMap<String,Tag>();
+    private transient Node node;
 
     public Category(String name, Node node) {
         this.name = name;

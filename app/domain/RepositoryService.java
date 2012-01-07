@@ -47,20 +47,21 @@ public class RepositoryService {
         searchIndex = gdb.index().forNodes("search", LuceneIndexImplementation.FULLTEXT_CONFIG);
     }
 
-    public void addApplication(String name, String repository, String giturl, String herokuapp, String stack, String type, String language, String framework, String build, String addOn, String email) {
+    public Long addApplication(String name, String repository, String giturl, String herokuapp, String stack, String type, String language, String framework, String build, String addOn, String email) {
         final Node foundApp = appsIndex.get(GIT_URL, giturl).getSingle();
-        if (foundApp == null) {
-            Node userNode = getOrCreateUser(email);
-            final Long id = nextId();
-            final Node appNode = gdb.createNode();
-            updateProperty(appNode,ID, id,appsIndex);
-            if (userNode!=null) {
-                userNode.createRelationshipTo(appNode,RelTypes.OWNS);
-            }
-            appsIndex.add(appNode,ID,id);
-            update(appNode, name, repository, giturl, herokuapp, stack);
-            addNewTags(appNode, type, language, framework, build, addOn);
+        if (foundApp != null) return (Long)foundApp.getProperty(ID);
+
+        Node userNode = getOrCreateUser(email);
+        final Long id = nextId();
+        final Node appNode = gdb.createNode();
+        updateProperty(appNode,ID, id,appsIndex);
+        if (userNode!=null) {
+            userNode.createRelationshipTo(appNode,RelTypes.OWNS);
         }
+        appsIndex.add(appNode,ID,id);
+        update(appNode, name, repository, giturl, herokuapp, stack);
+        addNewTags(appNode, type, language, framework, build, addOn);
+        return id;
     }
 
     private void update(Node appNode, String name, String repository, String gitUrl, String herokuApp, String stack) {
@@ -124,8 +125,12 @@ public class RepositoryService {
         return names;
     }
 
-    
-    private  Node getOrCreateUser(String email) {
+    public  Node getUser(String email) {
+        if (email==null || email.trim().isEmpty()) return null;
+        return userIndex.get(EMAIL, email).getSingle();
+    }
+
+    public  Node getOrCreateUser(String email) {
         if (email==null || email.trim().isEmpty()) return null;
         final Node user = userIndex.get(EMAIL, email).getSingle();
         if (user!=null) return user;
@@ -246,7 +251,11 @@ public class RepositoryService {
         addNewTags(app, type, language, framework, build, addOn);
     }
 
-    enum RelTypes implements RelationshipType { TAG, CATEGORY, RATED, TAGGED, OWNS }
+    public Long addApplication(Map<String, String> data) {
+        return addApplication(data.get(NAME),data.get(REPOSITORY),data.get(GIT_URL),data.get(HEROKUAPP),data.get(STACK),data.get("type"),data.get("language"),data.get("framework"),data.get("build"),data.get("add-on"),data.get("email"));
+    }
+
+    public enum RelTypes implements RelationshipType { TAG, CATEGORY, RATED, TAGGED, OWNS }
 
     private  void addNewTags(Map<String, Category> categories, String categoryName, String tagString, Node appNode, Map<Node, Relationship> existingTags) {
         final Category category = getCategory(categories, categoryName);
@@ -263,7 +272,7 @@ public class RepositoryService {
                 System.err.println("Error loading or creating tag: "+tagName);
                 continue;
             }
-            if (existingTags.remove(tagNode)!=null) {
+            if (existingTags.remove(tagNode)==null) {
                 appNode.createRelationshipTo(tagNode,RelTypes.TAGGED);
             }
         }

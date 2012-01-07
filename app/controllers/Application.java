@@ -53,7 +53,7 @@ public class Application extends Controller {
         render(categories, apps, tags, q, delta);
     }
 
-    private static Map<String, Category> parseTagsString(String tags) {
+    static Map<String, Category> parseTagsString(String tags) {
         if (tags == null || tags.trim().isEmpty()) return null;
         Map<String, Category> result = new HashMap<String, Category>();
         for (String catTag : tags.trim().split(COMMA_SPLIT)) {

@@ -1,6 +1,5 @@
 package domain;
 
-import controllers.Application;
 import org.neo4j.graphdb.Node;
 
 /**
@@ -8,9 +7,9 @@ import org.neo4j.graphdb.Node;
 * @since 30.12.11
 */
 public class Tag implements Comparable<Tag> {
-    String name;
-    int count;
-    private Node node;
+    private String name;
+    private int count;
+    private transient Node node;
 
     public Tag(Node node, String name, int count) {
         this.node = node;
