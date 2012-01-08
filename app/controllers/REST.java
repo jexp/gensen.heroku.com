@@ -88,7 +88,7 @@ public class REST extends Controller {
             notFound();
             return;
         }
-        final String uri = format("/categories/%s/%s", name, tag);
+        final String uri = tagUri(name, tag);
         if (category.getTag(tag) == null) {
             service.createTagNode(category, tag);
             created(uri);
@@ -96,6 +96,20 @@ public class REST extends Controller {
             location(uri);
             ok();
         }
+    }
+
+    private static String tagUri(String name, String tag) {
+        return format("/categories/%s/%s", name, tag);
+    }
+
+    public static void addTagIcon(String name, String tag, String icon) {
+        final Category category = service.loadCategories(name).get(name);
+        if (category==null || category.getTag(tag)==null) {
+            notFound();
+            return;
+        }
+        category.getTag(tag).getNode().setProperty("icon",icon);
+        location(tagUri(name,tag));
     }
 
     private static void created(String s) {

@@ -152,7 +152,7 @@ public class RepositoryService {
         final Iterable<Map<String,Object>> result = queryEngine.query("start n=node(0) " +
                 " match n-[:CATEGORY]->category-[?:TAG]->tag<-[?:TAGGED]-() " +
                 where +
-                " return category, category.category, tag, tag.tag? , count(*) as count",
+                " return category, category.category, tag, tag.tag?, tag.icon?, count(*) as count",
                 null);
         Map<String,Category> categories=new HashMap<String, Category>();
         for (Map<String, Object> row : result) {
@@ -160,16 +160,63 @@ public class RepositoryService {
             if (!categories.containsKey(category)) categories.put(category, new Category(category,(Node)row.get("category")));
             final Node tagNode = (Node) row.get("tag");
             if (tagNode==null) continue;
-            categories.get(category).addTag(tagNode,row.get("tag.tag").toString(),(Integer)row.get("count"));
+            final Tag tag = categories.get(category).addTag(tagNode, row.get("tag.tag").toString(), (Integer) row.get("count"));
+            final Object icon = row.get("tag.icon");
+            if (icon != null)  {
+                tag.setIcon(icon.toString());
+            }
         }
         return categories;
     }
 
+    enum AppQueryType {
+        ALL {
+            public String queryFor(Object param) {
+                return " start app=node:apps('id:*') ";
+            }
+        }, USER {
+            public String queryFor(Object param) {
+                return " start user=node:users(email='"+param+"') ";
+            }
+
+            public String userRelationship() {
+                return "";
+            }
+        }, SEARCH {
+            public String queryFor(Object param) {
+                return " start app=node:search('name:"+param+"') ";
+            }
+        }, ID {
+            public String queryFor(Object param) {
+                return " start app=node:apps(id='"+param+"') ";
+            }
+        };
+
+        public abstract String queryFor(Object param);
+        public static AppQueryType forQuery(Object param) {
+            if (param instanceof Number) return ID;
+            if (isQueryString(param)) {
+                if (param.toString().contains("@")) {
+                    return USER;
+                }
+                return SEARCH;
+            }
+            return ALL;
+        }
+        public String userRelationship() {
+            return "?";
+        }
+        private static boolean isQueryString(Object query) {
+                return query instanceof String && !((String)query).trim().isEmpty();
+            }
+
+    }
     public Map<Integer, AppInfo> loadApps(Map<String, Category> categories, Object query) {
+        final AppQueryType queryType = AppQueryType.forQuery(query);
         final String where = loadAppsWhere(categories);
-        final String start = loadAppsStart(query);
+        final String start = queryType.queryFor(query);
         final String statement = start +
-                " match p = category-[:TAG]->tag, tag<-[:TAGGED]-app-[?:OWNS]->user " +
+                " match p = category-[:TAG]->tag, tag<-[:TAGGED]-app<-["+queryType.userRelationship()+":OWNS]-user " +
                 ((where.isEmpty()) ? "" : " where " + where) +
                 " return app.id as appid, app.name, app.giturl, app.stack, app.repository, app.herokuapp, " +
                 " collect(extract(n in NODES(p) : coalesce(n.tag?,n.category?))) as tags " +
@@ -183,16 +230,6 @@ public class RepositoryService {
             apps.put(app.getId(),app);
         }
         return apps;
-    }
-
-    private  String loadAppsStart(Object query) {
-        if (query instanceof Number) return " start app=node:apps(id='"+query+"') ";
-        if (isQueryString(query)) return " start app=node:search('name:"+query+"') ";
-        return " start app=node:apps('id:*') ";
-    }
-
-    private boolean isQueryString(Object query) {
-        return query instanceof String && !((String)query).trim().isEmpty();
     }
 
     private  String loadAppsWhere(Map<String, Category> categories) {

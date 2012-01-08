@@ -17,8 +17,10 @@ public class Category {
         this.name = name;
         this.node = node;
     }
-    public void addTag(Node node, String name, int count) {
-        tags.put(name,new Tag(node,name,count));
+    public Tag addTag(Node node, String name, int count) {
+        final Tag tag = new Tag(node, name, count);
+        tags.put(name, tag);
+        return tag;
     }
 
     public String getName() {

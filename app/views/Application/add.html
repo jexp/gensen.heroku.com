@@ -31,6 +31,13 @@ label.app {
     font-size: 16px;
 }
 
+button {
+    background-color: #d3d3d3;
+    border: 1px solid black;
+    margin: 2px;
+    padding: 2px;
+}
+
 input, select {
     font-size: 8pt;
 }
@@ -51,18 +58,43 @@ a.tag:hover {
         if (v.split(/, */).indexOf(tag)>-1) return;
         e.val(v.length==0 ? tag : v + ", "+tag)
     }
+    function share_app(name, url, stack, addons) {
+        $("#share_form input[name=name]").val(name);
+        $("#share_form select[name=stack]").val(stack);
+        $("#share_form input[name=herokuapp]").val(url);
+        $("#share_form input[name=addon]").val(addons);
+    }
 </script>
 #{/set}
 
 <div style="max-width: 660px; padding-top: 40px">
-<h4>Add your Application</h4>
+<h4>Share your Applications</h4>
 #{if flash.error}
     <p style="color:#c00">
         ${flash.error}
     </p>
 #{/if}
-<form action="@{Application.addApp()}" method="POST">
-   Your Heroku Email: <input name="email" type="email"/><br/>
+    #{ifnot apps.empty}
+    <h5>Your Heroku Apps</h5>
+    #{list items:apps, as:'app'}
+        <div>
+            <a href="${app.url}" target="_blank">${app.name} at ${app.url} (${app.stack})</a>
+            (<button onclick="share_app('${app.name}','${app.url}','${app.stack}','${app.getTags("addon").join(", ")}');">add to share-form</button>, <a target="_blank" href="http://heroku.com/myapps/${app.name}">show</a>, ${app.tags}) <!-- todo addons, etc -->
+        </div>
+    #{/list}
+    #{/ifnot}
+    #{ifnot sharedApps.empty}
+    <h5>Your Shared Apps</h5>
+    #{list items:sharedApps, as:'app'}
+        <div>
+            <a href="${app.url}" target="_blank">${app.name}</a> (<a href="${app.repository}">Source Code</a>,<a href="${app.url}">Webapp</a>,<a href="/show/${app.id}">show</a>, ${app.tags}) <!-- todo addons, etc -->
+        </div>
+    #{/list}
+    #{/ifnot}
+
+    <h5>Shared an App</h5>
+    <form id="share_form" action="@{Application.addApp()}" method="POST">
+   Your Heroku Email: <input name="email" type="email" value="${session?.email}"/><br/>
    App Name: <input name="name"/><br/>
    Heroku Demo: <input name="herokuapp" type="url" hint="http://appname.herokuapp.com"/><br/>
     Stack: <select name="stack"/>

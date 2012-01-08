@@ -2,3 +2,29 @@ body {
     font-family: Verdana, sans-serif;
     font-size: 12pt;
 }
+
+.icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+    background: red;
+    float: left;
+    margin: 10px;
+    box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.5);
+}
+.shine {
+    background: -moz-linear-gradient(top, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.2) 100%); /* FF3.6+ */
+background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(255,255,255,0.7)), color-stop(100%,rgba(255,255,255,0.2))); /* Chrome,Safari4+ */
+background: -webkit-linear-gradient(top, rgba(255,255,255,0.7) 0%,rgba(255,255,255,0.2) 100%); /* Chrome10+,Safari5.1+ */
+background: -o-linear-gradient(top, rgba(255,255,255,0.7) 0%,rgba(255,255,255,0.2) 100%); /* Opera 11.10+ */
+background: -ms-linear-gradient(top, rgba(255,255,255,0.7) 0%,rgba(255,255,255,0.2) 100%); /* IE10+ */
+background: linear-gradient(top, rgba(255,255,255,0.7) 0%,rgba(255,255,255,0.2) 100%); /* W3C */
+filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#b3ffffff', endColorstr='#33ffffff',GradientType=0 ); /* IE6-9 */
+    height: 30px;
+    width: 50px;
+    box-shadow: inset 0px 2px 1px rgba(255, 255, 255, 0.7);
+    border-top-right-radius: 10px;
+    border-top-left-radius: 10px;
+    border-bottom-right-radius: 33px 13px;
+    border-bottom-left-radius: 33px 13px;
+}

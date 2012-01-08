@@ -246,7 +246,12 @@ label.app {
         <a href="/">All</a>
         <span>Language:</span>
             #{set cat:categories['language']/} #{list items:cat?.tags, as:'tag'}
+                #{if tag.icon}
+                    <a class="tag" onclick="add_tag('${cat.name}','${tag.name}')"><img style="max-height:32px;max-width:32px;" src="${tag.icon}" title="${tag.name}" alt="${tag.name}"/></a>
+                #{/if}
+                #{else }
                     <a style="font-size:${java.lang.Math.sqrt(tag.count)+10}" class="tag" onclick="add_tag('${cat.name}','${tag.name}')">${tag.name}</a>
+                #{/else}
             #{/list}
         <span>Build Tool: </span>
             #{set cat:categories['build']/} #{list items:cat?.tags, as:'tag'}

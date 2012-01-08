@@ -11,6 +11,9 @@ GET     /add                                    Application.add
 POST    /reindex                                Application.reindex
 POST    /add_addons                             Application.addAddons
 POST    /add                                    Application.addApp
+POST    /login                                    Application.login
+POST    /logout                                    Application.logout
+
 # Ignore favicon requests
 GET     /favicon.ico                            404
 
@@ -24,6 +27,8 @@ PUT    /apps                                    REST.addApp
 GET    /categories                              REST.getCategories
 GET    /categories/{name}                       REST.getCategory
 GET    /categories/{name}/{tag}                 REST.getTag
+PUT   /categories/{name}/{tag}                  REST.addTag
+POST   /categories/{name}/{tag}                 REST.addTagIcon
 
 GET    /users/{email}                           REST.getUser
 PUT    /users/{email}                           REST.addUser

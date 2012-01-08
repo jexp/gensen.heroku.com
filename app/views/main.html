@@ -19,7 +19,22 @@
 			    <div class="topbar" data-dropdown="dropdown">
 			      <div class="topbar-inner">
 			        <div class="container">
-			          <h3><a href="/">#{get 'title' /}</a></h3>
+			            <h3><a href="/">#{get 'title' /}</a></h3>
+                        <div style="float: right">
+                        #{ifnot session.email}
+                        <form action="/login" method="POST">
+                            <input type="email" name="email" placeholder="heroku-email"/>
+                            <input type="password" name="password" placeholder="heroku-password"/>
+                            <input type="submit" name="login" value="Login"/>
+                        </form>
+                        #{/ifnot}
+                        #{else }
+                            <a href="/add">${session.email}</a>
+                            <form action="/logout" method="POST">
+                                <input type="submit" name="logout" value="Logout"/>
+                            </form>
+                        #{/else}
+                        </div>
 		          	</div>
 			      </div><!-- /topbar-inner -->
 			    </div><!-- /topbar -->

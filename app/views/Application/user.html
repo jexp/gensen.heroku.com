@@ -1,0 +1,68 @@
+#{extends 'main.html' /}
+#{set title:'Update your Application at the Heroku Template Repository' /}
+#{set 'moreStyles'}
+
+<link rel="stylesheet" href="@{'/public/colorbox.css'}" />
+<style type="text/css" media="screen">
+input.blur {
+    color: #999;
+}
+h4 {
+    font-size: 10pt;
+}
+h5 {
+    margin-left: 20px;
+    font-size: 8pt;
+}
+form {
+    margin-top: 40px;
+    font-size: 8pt;
+}
+label.app {
+    width: auto;
+    float: none;
+    font-size: 16px;
+}
+
+input, select {
+    font-size: 8pt;
+}
+
+a.tag:hover {
+    text-decoration: underline;
+}
+</style>
+#{/set}
+#{set 'moreScripts'}
+
+<script type="text/javascript" src="@{'/public/javascripts/jquery.colorbox-min.js'}"></script>
+<script type="text/javascript" src="@{'/public/javascripts/jquery.hint.js'}"></script>
+<script type="text/javascript">
+    function add_tag(id, tag) {
+        var e=$("#"+id)
+        var v=e.val();
+        if (v.split(/, */).indexOf(tag)>-1) return;
+        e.val(v.length==0 ? tag : v + ", "+tag)
+    }
+</script>
+#{/set}
+
+<div style="max-width: 660px; padding-top: 40px">
+<h4>Share your Heroku-Applications</h4>
+#{if flash.error}
+    <p style="color:#c00">
+        ${flash.error}
+    </p>
+#{/if}
+<form action="@{Application.shareApp()}" method="POST">
+    #{list items:apps, as:'app'}
+        <div class="row">
+            <a href="${app.web_url}" target="_blank"><label class="app"><input type="radio" name="app" value="${app.name}"/>${app.name}</label></a>
+            (<a href="${app.git_url}">Source Code</a>,<a href="/show/${app.id}">show</a>, ${app.tags})
+        </div>
+    #{/list}
+   <input type="submit" name="submit" value="Save Application"/>
+</form>
+
+<a href="@{Application.index()}">Back to index</a>
+</div>

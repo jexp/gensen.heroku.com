@@ -8,6 +8,7 @@ import org.neo4j.graphdb.Node;
 */
 public class Tag implements Comparable<Tag> {
     private String name;
+    private String icon;
     private int count;
     private transient Node node;
 
@@ -36,5 +37,13 @@ public class Tag implements Comparable<Tag> {
 
     public Node getNode() {
         return node;
+    }
+
+    public String getIcon() {
+        return icon;
+    }
+
+    public void setIcon(String icon) {
+        this.icon = icon;
     }
 }

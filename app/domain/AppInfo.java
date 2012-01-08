@@ -52,6 +52,11 @@ public class AppInfo {
         return categories;
     }
 
+
+    public Collection<String> getTags(String categoryName) {
+        final Category category = categories.get(categoryName);
+        return category!=null ? category.getTagNames() : Collections.<String>emptyList();
+    }
     public List<String> getTags() {
         List<String> result=new ArrayList<String>();
         for (Category category : categories.values()) {

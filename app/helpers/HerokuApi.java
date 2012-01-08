@@ -2,11 +2,14 @@ package helpers;
 
 import com.heroku.api.Heroku;
 import com.heroku.api.connection.HttpClientConnection;
+import com.heroku.api.exception.RequestFailedException;
 import com.heroku.api.model.Addon;
 import com.heroku.api.model.App;
 import com.heroku.api.request.Request;
 import com.heroku.api.request.addon.AddonList;
+import com.heroku.api.request.addon.AppAddonsList;
 import com.heroku.api.request.app.AppCreate;
+import com.heroku.api.request.app.AppList;
 import com.heroku.api.request.key.KeyAdd;
 import com.heroku.api.request.key.KeyRemove;
 import com.heroku.api.request.login.BasicAuthLogin;
@@ -32,8 +35,16 @@ public class HerokuApi {
     public HerokuApi(final String username, final String password) {
         herokuConnection = createConnection(username, password);
     }
+    public HerokuApi(final String token) {
+        herokuConnection = createConnection(token);
+    }
+
     private HttpClientConnection createConnection(final String username, final String password) {
         return new HttpClientConnection(new BasicAuthLogin(username, password));
+    }
+
+    private HttpClientConnection createConnection(final String token) {
+        return new HttpClientConnection(token);
     }
 
     public void shareApp(App app, final String emailAddress) {
@@ -99,5 +110,21 @@ public class HerokuApi {
     public List<Addon> listAddons() {
         final AddonList addonList = new AddonList();
         return execute(addonList);
+    }
+
+    public static String getToken(String email, String password) {
+        try {
+            return new HerokuApi(email, password).herokuConnection.getApiKey();
+        } catch(RequestFailedException rfe) {
+            return null;
+        }
+    }
+
+    public List<App> listApps() {
+        return execute(new AppList());
+    }
+
+    public List<Addon> addonsFor(App app) {
+        return execute(new AppAddonsList(app.getName()));
     }
 }

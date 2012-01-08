@@ -2,19 +2,18 @@ package controllers;
 
 import com.google.gson.Gson;
 import com.heroku.api.model.Addon;
+import com.heroku.api.model.App;
 import domain.AppInfo;
 import domain.Category;
 import domain.RepositoryService;
 import helpers.HerokuApi;
+import helpers.ProcessException;
 import org.neo4j.rest.graphdb.RestGraphDatabase;
 import org.neo4j.rest.graphdb.query.RestCypherQueryEngine;
 import play.mvc.Controller;
 import play.mvc.Http;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static java.lang.System.getenv;
 
@@ -68,7 +67,14 @@ public class Application extends Controller {
 
     public static void add() {
         Map<String, Category> categories = service.loadCategories();
-        render(categories);
+        final Collection<AppInfo> sharedApps = sharedApps();
+        final List<AppInfo> apps = listApps(sharedApps);
+        render(categories,apps,sharedApps);
+    }
+
+    private static Collection<AppInfo> sharedApps() {
+        if (!loggedIn()) return Collections.emptyList();
+        return service.loadApps(null, email()).values();
     }
 
 
@@ -89,14 +95,76 @@ public class Application extends Controller {
         final Map<String, Category> categories = service.loadCategories("addon");
         final Category category = categories.get("addon");
         for (Addon addon : herokuApi.listAddons()) {
-            String name = addon.getName();
-            if (name.contains(":")) name = name.substring(0, name.indexOf(":"));
+            String name = addonName(addon);
             if (category.containsTag(name)) continue;
             service.createTagNode(category, name);
         }
     }
 
+    private static String addonName(Addon addon) {
+        String name = addon.getName();
+        if (name.contains(":")) return name.substring(0, name.indexOf(":"));
+        return name;
+    }
+
     private static String toJson(Object value) {
         return new Gson().toJson(value);
+    }
+
+    public static void login(String email, String password) {
+        final String token = HerokuApi.getToken(email, password);
+        if (token!=null) {
+            session.put("email",email);
+            session.put("token",token);
+        }
+        index(); // todo redirect
+    }
+    public static void logout() {
+        session.remove("email","token");
+        index(); // todo redirect
+    }
+    private static String email() {
+        return session.get("email");
+    }
+    private static String token() {
+        return session.get("token");
+    }
+    private static HerokuApi herokuApi() {
+        if (!loggedIn()) throw new ProcessException("Not Logged In");
+        return new HerokuApi(token());
+    }
+    private static boolean loggedIn() {
+        return email()!=null;
+    }
+    private static List<AppInfo> listApps(Collection<AppInfo> sharedApps) {
+        if (!loggedIn()) return Collections.emptyList();
+        List<AppInfo> result=new ArrayList<AppInfo>();
+        final HerokuApi api = herokuApi();
+
+        for (App herokuApp : api.listApps()) {
+            if (isShared(sharedApps, herokuApp)) continue;
+            final AppInfo appInfo = new AppInfo(null, herokuApp.getName(), herokuApp.getWeb_url(), null, toStack(herokuApp), null);
+            for (Addon addon : api.addonsFor(herokuApp)) {
+                appInfo.addTag("addon",addonName(addon));
+            }
+            result.add(appInfo);
+        }
+        return result;
+    }
+
+    private static boolean isShared(Collection<AppInfo> sharedApps, App app) {
+        final String url = app.getWeb_url();
+        for (AppInfo sharedApp : sharedApps) {
+            if (sharedApp.getUrl().equals(url)) return true;
+        }
+        return false;
+    }
+
+    private static String toStack(App herokuApp) {
+        final String stack = herokuApp.getStack();
+        if (stack.equalsIgnoreCase("cedar")) return "cedar";
+        if (stack.contains("amboo")) return "bamboo";
+        if (stack.contains("spen")) return "aspen";
+        return null;
     }
 }
