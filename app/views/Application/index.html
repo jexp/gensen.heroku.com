@@ -265,7 +265,12 @@ label.app {
         <br/>
         <span>Add-On:</span>
             #{set cat:categories['addon']/} #{list items:cat?.tags, as:'tag'}
-                <a style="font-size:${java.lang.Math.sqrt(tag.count)+10}" class="tag" onclick="add_tag('${cat.name}','${tag.name}')">${tag.name}</a>
+                #{if tag.icon}
+                    <a class="tag" onclick="add_tag('${cat.name}','${tag.name}')"><img style="max-height:32px;max-width:32px;" src="${tag.icon}" title="${tag.name}" alt="${tag.name}"/></a>
+                #{/if}
+                #{else }
+                    <a style="font-size:${java.lang.Math.sqrt(tag.count)+10}" class="tag" onclick="add_tag('${cat.name}','${tag.name}')">${tag.name}</a>
+                #{/else}
             #{/list}<br/>
         Took ${delta} ms.
     </div>
