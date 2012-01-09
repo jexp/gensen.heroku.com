@@ -44,6 +44,16 @@ public class Application extends Controller {
         render(app,categories);
     }
 
+    public static void update(Integer id) {
+        final AppInfo app = service.getAppInfo(id);
+        if (!loggedIn() || !app.isOwner(email())) {
+            show(id);
+            return;
+        }
+        final Map<String, Category> categories = service.loadCategories();
+        render(app,categories);
+    }
+
     public static void index(String tags, String q) {
         final long start = System.currentTimeMillis();
         final Map<String, Category> categories = service.loadCategories();
@@ -65,6 +75,12 @@ public class Application extends Controller {
         return result;
     }
 
+    public static void like(Integer id, int stars, String comment) {
+        if (loggedIn()) {
+            service.like(id,email(),stars,comment);
+        }
+        index();
+    }
     public static void add() {
         Map<String, Category> categories = service.loadCategories();
         final Collection<AppInfo> sharedApps = sharedApps();

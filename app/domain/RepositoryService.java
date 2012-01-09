@@ -169,6 +169,22 @@ public class RepositoryService {
         return categories;
     }
 
+    public Relationship like(Integer appid, String email, int stars, String comment) {
+        final QueryResult<Map<String,Object>> result = queryEngine.query("start user=node:users(email={email}), app=node:apps(id={id}) match user-[r?:RATED]->app return user,r,app", map("email", email, ID, appid));
+        for (Map<String, Object> row : result) {
+            Relationship rel = (Relationship) row.get("r");
+            if (rel ==null) {
+                Node app= (Node) row.get("app");
+                Node user= (Node) row.get("user");
+                rel = user.createRelationshipTo(app, RelTypes.RATED);
+            }
+            rel.setProperty("stars",stars);
+            rel.setProperty("comment",comment);
+            return rel;
+        }
+        return null;
+    }
+
     enum AppQueryType {
         ALL {
             public String queryFor(Object param) {
@@ -216,10 +232,10 @@ public class RepositoryService {
         final String where = loadAppsWhere(categories);
         final String start = queryType.queryFor(query);
         final String statement = start +
-                " match p = category-[:TAG]->tag, tag<-[:TAGGED]-app<-["+queryType.userRelationship()+":OWNS]-user " +
+                " match p = category-[:TAG]->tag, tag<-[:TAGGED]-app<-["+queryType.userRelationship()+":OWNS]-user,app<-[r?:RATED]-() " +
                 ((where.isEmpty()) ? "" : " where " + where) +
-                " return app.id as appid, app.name, app.giturl, app.stack, app.repository, app.herokuapp, " +
-                " collect(extract(n in NODES(p) : coalesce(n.tag?,n.category?))) as tags " +
+                " return app.id as appid, app.name, app.giturl, app.stack, app.repository, app.herokuapp, user.email? as owner," +
+                " collect(extract(n in NODES(p) : coalesce(n.tag?,n.category?))) as tags, avg(r.stars?) as stars " +
                 " order by app.name asc limit 20";
         final Iterable<Map<String,Object>> result = queryEngine.query(
                 statement,null); // map("query",query.toString())
@@ -254,6 +270,14 @@ public class RepositoryService {
         final String appName = row.get("app.name").toString();
         final Integer appId = intValue(row.get("appid"));
         final domain.AppInfo app = new domain.AppInfo(appId, appName,row.get("app.herokuapp").toString(),row.get("app.repository").toString(),row.get("app.stack").toString(),row.get("app.giturl").toString());
+        final Object stars = row.get("stars");
+        if (stars!=null) {
+            app.setStars(Float.parseFloat(stars.toString()));
+        }
+        final Object owner= row.get("owner");
+        if (owner!=null) {
+            app.setOwner(owner.toString());
+        }
         addTags(row, app);
         return app;
     }

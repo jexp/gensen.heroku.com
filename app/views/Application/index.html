@@ -275,8 +275,8 @@ label.app {
 <div id="apps" style="margin-left: 30px">
     #{list items:apps, as:'app'}
         <div class="row">
-            <a href="${app.url}" target="_blank"><label class="app"><input type="radio" name="app" value="${app.name}"/>${app.name}</label></a>
-            (<a href="${app.repository}">Source Code</a>,<a href="/show/${app.id}">show</a>, ${app.tags})
+            <label class="app"><input type="radio" name="app" value="${app.name}"/><a href="#{if app.isOwner(session.email)}/update/#{/if}#{else}/show/#{/else}${app.id}">${app.name} <img src="/public/icons/5-stars.png" style="background-image:url(/public/icons/yellow.jpg); background-repeat: no-repeat; background-size: ${(int)(app.stars*100/5)}% 100%;height:16px;" title="${app.stars} Stars" alt="${app.stars} Stars"/></a></label>
+            (${app.categoryTags}, <a target="_blank" href="${app.url}">Demo</a>, <a href="${app.repository}">Source Code</a>)
         </div>
     #{/list}
     <div class="row"><label class="app"><input id="customGitUrlRadio" type="radio" name="app" value="Custom git url"/>Custom git url</label> <input id="customGitUrl" type="text" title="git://github.com/foo/bar.git" style="display: none"/></div>

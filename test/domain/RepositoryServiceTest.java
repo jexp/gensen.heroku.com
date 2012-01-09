@@ -18,9 +18,7 @@ import java.util.Collection;
 import java.util.Map;
 
 import static java.util.Arrays.asList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 import static org.neo4j.helpers.collection.IteratorUtil.asCollection;
 
 /**
@@ -75,8 +73,8 @@ public class RepositoryServiceTest {
         assertEquals(1,tagRels.size());
     }
 
-    private void addApplication() {
-        service.addApplication("name","repository","giturl","herokuapp","cedar","demo","java","rails","maven","neo4j","test@test.de");
+    private Integer addApplication() {
+        return service.addApplication("name","repository","giturl","herokuapp","cedar","demo","java","rails","maven","neo4j","test@test.de");
     }
 
     @Test
@@ -145,4 +143,32 @@ public class RepositoryServiceTest {
         assertEquals(asList("clojure","java"),IteratorUtil.asCollection(category.getTagNames()));
     }
 
+    @Test
+    public void testLike() {
+        final Integer appId = addApplication();
+        Relationship rel = service.like(appId, "test@test.de", 5, "comment");
+        assertRatedRel(rel, 5, "comment");
+        final Node node = appsIndex.get(RepositoryService.ID, appId).getSingle();
+        rel = node.getSingleRelationship(RepositoryService.RelTypes.RATED, Direction.INCOMING);
+        assertRatedRel(rel, 5, "comment");
+    }
+    @Test
+    public void testStars() {
+        final Integer appId = addApplication();
+        service.getOrCreateUser("test2@test.de");
+        service.like(appId, "test@test.de", 5, "comment");
+        service.like(appId, "test2@test.de", 2, "comment2");
+
+        final Node node = appsIndex.get(RepositoryService.ID, appId).getSingle();
+        int relCount = IteratorUtil.count(node.getRelationships(RepositoryService.RelTypes.RATED, Direction.INCOMING));
+        assertEquals(2, relCount);
+        final AppInfo appInfo = service.getAppInfo(appId);
+        assertEquals(3.5f,appInfo.getStars(),0f);
+    }
+
+    private void assertRatedRel(Relationship rel, final int stars, final String comment) {
+        assertEquals(RepositoryService.RelTypes.RATED.name(),rel.getType().name());
+        assertEquals(stars,rel.getProperty("stars"));
+        assertEquals(comment,rel.getProperty("comment"));
+    }
 }

@@ -1,5 +1,5 @@
 #{extends 'main.html' /}
-#{set title:'Update your Application at the Heroku Template Repository' /}
+#{set title:'Application Info' /}
 #{set 'moreStyles'}
 
 <link rel="stylesheet" href="@{'/public/colorbox.css'}" />
@@ -45,40 +45,42 @@ a.tag:hover {
 <script type="text/javascript" src="@{'/public/javascripts/jquery.colorbox-min.js'}"></script>
 <script type="text/javascript" src="@{'/public/javascripts/jquery.hint.js'}"></script>
 <script type="text/javascript">
-    function add_tag(id, tag) {
-        var e=$("#"+id)
-        var v=e.val();
-        if (v.split(/, */).indexOf(tag)>-1) return;
-        e.val(v.length==0 ? tag : v + ", "+tag)
+    function stars_click(e,evt) {
+        var stars=Math.round((evt.x-e.offsetLeft)/e.offsetWidth*10)/2;
+        $("#stars").val(stars);
+        $("#stars_image").css({"background-size":(stars*100/5)+"% 100%"})
     }
 </script>
 #{/set}
 
 <div style="max-width: 660px; padding-top: 40px">
-<h4>Update your Application</h4>
+<h4>${app.name} <img src="/public/icons/5-stars.png" style="background-image:url(/public/icons/yellow.jpg); background-repeat: no-repeat; background-size: ${((int)(app.stars*100/10))/2.0}% 100%;height:16px;" title="${app.stars} Stars" alt="${app.stars} Stars"/></h4>
 #{if flash.error}
     <p style="color:#c00">
         ${flash.error}
     </p>
 #{/if}
-<form action="@{Application.updateApp()}" method="POST">
-   <input name="id" type="hidden" value="${app.id}"/>
-   App Name: <input name="name" value="${app.name}"/><br/>
-   Heroku Demo Page: <input name="herokuapp" type="url" hint="http://appname.herokuapp.com" value="${app.url}"/><br/>
-    Stack: <select name="stack"/>
-	<option value="cedar" #{if app.stack=="cedar"}selected="selected"#{/if}>Cedar</option>
-	<option value="bamboo" #{if app.stack=="bamboo"}selected="selected"#{/if}>Bamboo</option>
-	<option value="aspen" #{if app.stack=="aspen"}selected="selected"#{/if}>Aspen</option>
-   </select><br/>
-   Source Link: <input name="repository"  type="url" hint="http://github.com/<you>/appname" value="${app.repository}"/><br/>
-   Repository Git URL: <input name="giturl" type="url" hint="git://github.com/<you>/<appname>.git" value="${app.gitUrl}"/><br/>
-   Application Type: <input id="type" name="type" value="#{list items:app.categories['type']?.tags, as:'tag'} ${tag.name},  #{/list}"/> #{list items:categories['type']?.tags, as:'tag'} <a class="tag" onclick="add_tag('type','${tag.name}')">${tag.name}</a>  #{/list}<br/>
-   Language: <input id="language" name="language" value="#{list items:app.categories['language']?.tags, as:'tag'} ${tag.name},  #{/list}"/>#{list items:categories['language']?.tags, as:'tag'} <a class="tag" onclick="add_tag('language','${tag.name}')">${tag.name}</a>  #{/list}<br/>
-   Framework: <input id="framework" name="framework" value="#{list items:app.categories['framework']?.tags, as:'tag'} ${tag.name},  #{/list}"/> #{list items:categories['framework']?.tags, as:'tag'} <a class="tag" onclick="add_tag('framework','${tag.name}')">${tag.name}</a>  #{/list}<br/>
-   Build Tool: <input id="build" name="build" value="#{list items:app.categories['build']?.tags, as:'tag'} ${tag.name},  #{/list}"/> #{list items:categories['build']?.tags, as:'tag'} <a class="tag" onclick="add_tag('build','${tag.name}')">${tag.name}</a>  #{/list}<br/>
-   Add-On: <input id="addon" name="addon" value="#{list items:app.categories['addon']?.tags, as:'tag'} ${tag.name},  #{/list}"/> #{list items:categories['addon']?.tags, as:'tag'} <a class="tag" onclick="add_tag('addon','${tag.name}')">${tag.name}</a>  #{/list}<br/>
-   <input type="submit" name="submit" value="Save Application"/>
-</form>
+<div>
+   <span name="id" style="display: none;">${app.id}</span>
+   <a href="${app.url}" target="_blank">Heroku Demo Page</a><br/>
+    Stack: ${app.stack}<br/>
+   <a href="${app.repository}" target="_blank">Source Link</a><br/>
+   Repository Git URL: ${app.gitUrl}<br/>
+   Application Type: #{list items:app.categories['type']?.tags, as:'tag'} ${tag.name} #{/list} <br/>
+   Language: #{list items:app.categories['language']?.tags, as:'tag'} ${tag.name}  #{/list}<br/>
+   Framework: #{list items:app.categories['framework']?.tags, as:'tag'} ${tag.name}  #{/list}<br/>
+   Build Tool: #{list items:app.categories['build']?.tags, as:'tag'} ${tag.name}  #{/list}<br/>
+   Add-On: #{list items:app.categories['addon']?.tags, as:'tag'} ${tag.name}  #{/list}<br/>
+   <form action="/like" method="POST">
+       <input type="hidden" name="id" value="${app.id}"/>
+       Rating: <img id="stars_image" src="/public/icons/5-stars.png" style="background-image:url(/public/icons/yellow.jpg); background-repeat: no-repeat; background-size: ${((int)(app.stars*100/10))/2.0}% 100%;height:16px;" title="${app.stars} Stars" alt="${app.stars} Stars" onclick="stars_click(this,evt);"/>
+       <input type="hidden" name="stars" value="${app.stars}" id="stars"/>
+       Comment: <input type="text" name="comment"/>
+       <input type="submit" value="Rate"/>
+   </form>
+
+</div>
+
 
 <a href="@{Application.index()}">Back to index</a>
 </div>
