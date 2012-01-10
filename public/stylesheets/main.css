@@ -28,3 +28,7 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#b3ffffff', e
     border-bottom-right-radius: 33px 13px;
     border-bottom-left-radius: 33px 13px;
 }
+
+.content {
+    margin-top: 60px;
+}

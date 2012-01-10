@@ -21,6 +21,10 @@ public class Tag implements Comparable<Tag> {
     public String getName() {
         return name;
     }
+    
+    public String getDisplayName() {
+        return name.replaceAll("_", " ");
+    }
 
     public int getCount() {
         return count;
