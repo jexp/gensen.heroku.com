@@ -2,7 +2,7 @@
 #{set title:'Add an Application to the Heroku Template Repository' /}
 #{set 'moreStyles'}
 
-<link rel="stylesheet" href="@{'/public/colorbox.css'}" />
+<link rel="stylesheet" href="@{'/public/colorbox.css'}"/>
 <!--style type="text/css" media="screen">
 input.blur {
     color: #999;
@@ -53,10 +53,10 @@ a.tag:hover {
 <script type="text/javascript" src="@{'/public/javascripts/jquery.hint.js'}"></script>
 <script type="text/javascript">
     function add_tag(id, tag) {
-        var e=$("#"+id)
-        var v=e.val();
-        if (v.split(/, */).indexOf(tag)>-1) return;
-        e.val(v.length==0 ? tag : v + ", "+tag)
+        var e = $("#" + id)
+        var v = e.val();
+        if (v.split(/, */).indexOf(tag) > -1) return;
+        e.val(v.length == 0 ? tag : v + ", " + tag)
     }
     function share_app(name, url, stack, addons) {
         $("#share_form input[name=name]").val(name);
@@ -67,50 +67,187 @@ a.tag:hover {
 </script>
 #{/set}
 
-<div style="max-width: 660px; padding-top: 40px">
-<h4>Share your Applications</h4>
-#{if flash.error}
-    <p style="color:#c00">
-        ${flash.error}
-    </p>
-#{/if}
-    #{ifnot apps.empty}
-    <h5>Your Heroku Apps</h5>
-    #{list items:apps, as:'app'}
-        <div>
-            <a href="${app.url}" target="_blank">${app.name} at ${app.url} (${app.stack})</a>
-            (<button onclick="share_app('${app.name}','${app.url}','${app.stack}','${app.getTags("addon").join(", ")}');">add to share-form</button>, <a target="_blank" href="http://heroku.com/myapps/${app.name}">show</a>, ${app.tags}) <!-- todo addons, etc -->
-        </div>
-    #{/list}
-    #{/ifnot}
-    #{ifnot sharedApps.empty}
-    <h5>Your Shared Apps</h5>
-    #{list items:sharedApps, as:'app'}
-        <div>
-            <a href="${app.url}" target="_blank">${app.name}</a> (<a href="${app.repository}">Source Code</a>,<a href="${app.url}">Webapp</a>,<a href="/show/${app.id}">show</a>, ${app.tags}) <!-- todo addons, etc -->
-        </div>
-    #{/list}
-    #{/ifnot}
+<div class="primary">
+    <div class="container">
+        <div class="row">
+            <div class="span16 round-box">
+                <h4>Share your Applications</h4>
+            #{if flash.error}
+                <p style="color:#c00">
+                ${flash.error}
+                </p>
+            #{/if}
+            #{ifnot apps.empty}
+                <h5>Your Heroku Apps</h5>
+                <table>
+                #{list items:apps, as:'app'}
+                    <tr>
+                        <td>
+                            <a href="${app.url}" target="_blank">${app.name} at ${app.url} (${app.stack})</a>
+                            <br/>
+                            <span style="font-size: 10px; color:gray">${app.tags}</span>
+                        </td>
+                        <td>
+                            <button class="btn" onclick="share_app('${app.name}','${app.url}','${app.stack}','${app.getTags("addon").join(", ")}');">
+                                share
+                            </button>
+                        </td>
+                        <td>
+                            <a class="btn" target="_blank" href="http://heroku.com/myapps/${app.name}">show</a>
+                        </td>
+                        <!-- todo addons, etc -->
+                    </tr>
+                #{/list}
+                </table>
+            #{/ifnot}
+            #{ifnot sharedApps.empty}
+                <h5>Your Shared Apps</h5>
+                #{list items:sharedApps, as:'app'}
+                    <div>
+                        <a href="${app.url}" target="_blank">${app.name}</a> (<a href="${app.repository}">Source
+                        Code</a>,<a href="${app.url}">Webapp</a>,<a href="/show/${app.id}">show</a>, ${app.tags})
+                        <!-- todo addons, etc -->
+                    </div>
+                #{/list}
+            #{/ifnot}
 
-    <h5>Shared an App</h5>
-    <form id="share_form" action="@{Application.addApp()}" method="POST">
-   Your Heroku Email: <input name="email" type="email" value="${session?.email}"/><br/>
-   App Name: <input name="name"/><br/>
-   Heroku Demo: <input name="herokuapp" type="url" hint="http://appname.herokuapp.com"/><br/>
-    Stack: <select name="stack"/>
-	<option value="cedar" selected="selected">Cedar</option>
-	<option value="bamboo">Bamboo</option>
-	<option value="aspen">Aspen</option>
-   </select><br/>
-    Source Link: <input name="repository"  type="url" hint="http://github.com/<you>/appname"/><br/>
-    Repository Git URL: <input name="giturl" type="url" hint="git://github.com/<you>/<appname>.git"/><br/>
-   Application Type: <input id="type" name="type"/> #{list items:categories['type']?.tags, as:'tag'} <a style="font-size:${java.lang.Math.sqrt(tag.count)+10}" class="tag" onclick="add_tag('type','${tag.name}')">${tag.name}</a>  #{/list}<br/>
-   Language: <input id="language" name="language"/>#{list items:categories['language']?.tags, as:'tag'} <a style="font-size:${java.lang.Math.sqrt(tag.count)+10}" class="tag" onclick="add_tag('language','${tag.name}')">${tag.name}</a>  #{/list}<br/>
-   Framework: <input id="framework" name="framework"/> #{list items:categories['framework']?.tags, as:'tag'} <a style="font-size:${java.lang.Math.sqrt(tag.count)+10}" class="tag" onclick="add_tag('framework','${tag.name}')">${tag.name}</a>  #{/list}<br/>
-   Build Tool: <input id="build" name="build"/> #{list items:categories['build']?.tags, as:'tag'} <a style="font-size:${java.lang.Math.sqrt(tag.count)+10}" class="tag" onclick="add_tag('build','${tag.name}')">${tag.name}</a>  #{/list}<br/>
-   addon: <input id="addon" name="addon"/> #{list items:categories['addon']?.tags, as:'tag'} <a style="font-size:${java.lang.Math.sqrt(tag.count)+10}" class="tag" onclick="add_tag('addon','${tag.name}')">${tag.name}</a>  #{/list}<br/>
-   <input type="submit" name="submit" value="Add Application"/>
-</form>
+                <h5>Share an App</h5>
 
-<a href="@{Application.index()}">Back to index</a>
+                <form id="share_form" action="@{Application.addApp()}" method="POST">
+                    <table>
+                        <tr>
+                            <td>
+                                Your Heroku Email:
+                            </td>
+                            <td>
+                                <input name="email" type="email" value="${session?.email}"/><br/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                App Name:
+                            </td>
+                            <td colspan="2">
+                                <input name="name"/><br/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Heroku Demo:
+                            </td>
+                            <td>
+                                <input name="herokuapp" type="url" hint="http://appname.herokuapp.com"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Stack:
+                            </td>
+                            <td colspan="2">
+                                <select name="stack"/>
+                                <option value="cedar" selected="selected">Cedar</option>
+                                <option value="bamboo">Bamboo</option>
+                                <option value="aspen">Aspen</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Source Link:
+                            </td>
+                            <td colspan="2">
+                                <input name="repository" type="url" hint="http://github.com/<you>/appname"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Repository Git URL:
+                            </td>
+                            <td>
+                                <input name="giturl" type="url" hint="git://github.com/<you>/<appname>.git"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Application Type:
+                            </td>
+                            <td>
+                                <input id="type" name="type"/>
+                            </td>
+                            <td class="tag-category">
+                                <ul>
+                                #{list items:categories['type']?.tags, as:'tag'}
+                                    <li class="tag"><a onclick="add_tag('type','${tag.name}')">${tag.name}</a></li>
+                                #{/list}
+                                </ul>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Language:
+                            </td>
+                            <td>
+                                <input id="language" name="language"/>
+                            </td>
+                            <td class="tag-category">
+                                <ul>
+                                #{list items:categories['language']?.tags, as:'tag'}
+                                <li class="tag"><a onclick="add_tag('language','${tag.name}')">${tag.name}</a></li>
+                                #{/list}
+                                </ul>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Framework:
+                            </td>
+                            <td>
+                                <input id="framework" name="framework"/>
+                            </td>
+                            <td class="tag-category">
+                                <ul>
+                                #{list items:categories['framework']?.tags, as:'tag'}
+                                <li class="tag"><a onclick="add_tag('framework','${tag.name}')">${tag.name}</a></li>
+                              #{/list}
+                                </ul>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Build Tool:
+                            </td>
+                            <td>
+                                <input id="build" name="build"/>
+                            </td>
+                            <td class="tag-category">
+                                <ul>
+                                #{list items:categories['build']?.tags, as:'tag'}
+                                <li class="tag"><a onclick="add_tag('build','${tag.name}')">${tag.name}</a></ul>
+                                #{/list}
+                                </ul>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Add-on:
+                            </td>
+                            <td>
+                                <input id="addon" name="addon"/>
+                            </td>
+                            <td class="tag-category">
+                                <ul>
+                                #{list items:categories['addon']?.tags, as:'tag'}
+                                <li class="tag"><a onclick="add_tag('addon','${tag.name}')">${tag.name}</a> </li>
+                                #{/list}
+                                </ul>
+                            </td>
+                        </tr>
+                    </table>
+                    <input type="submit" name="submit" value="Add Application"/>
+                </form>
+
+                <a href="@{Application.index()}">Back to index</a>
+            </div>
+        </div>
+    </div>
 </div>

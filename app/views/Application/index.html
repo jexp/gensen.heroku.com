@@ -16,22 +16,22 @@
 <div id="intro">
   <div class="container">
     <div class="row">
-        <h2>Three steps to create a new starter project</h2>
+        <h2>create a new project from a template</h2>
         <div class="span-one-third">
-            <h3>(1) Plan</h3>
+            <h3>Plan</h3>
             <p>Prepare for a new project by choosing the features of your stack</p>
         </div>
         <div class="span-one-third">
-            <h3>(2) Select</h3>
+            <h3>Select</h3>
             <p>Choose a template project that matches your criteria</p>
         </div>
         <div class="span-one-third">
-            <h3>(3) Generate</h3>
-            <p>Choose a template project that matches your criteria</p>
+            <h3>Generate</h3>
+            <p>Clone the project into your heroku account</p>
         </div>
     </div>
 </div>
-<div id="plan">
+<div id="plan" class="primary">
   <div class="container">
     <div class="row">
         <div class="alpha span8 tag-category" id="cat-language">
@@ -103,7 +103,7 @@
   </div>
 </div> <!-- plan -->
     
-<div id="choose">
+<div id="choose" class="secondary">
     <div class="container">
     <div clas="row">
         <div class="alpha span16">
@@ -145,9 +145,8 @@
 </div>
 <div id="generate" class="container">
     <div class="row">
-        <h4>Step 2) Clone the app and give access to:</h4>
-        <input id="emailAddress" type="text" title="foo@bar.com" class="required email"/>
-        <button id="shareAppButton" class="btn primary">Go!</button>
+        <input style="width: 100%" id="emailAddress" type="text" title="foo@bar.com" class="required email"/><br/>
+        <button style="width: 100%" id="shareAppButton" class="btn primary">Clone the template, giving access to account above</button>
         <br/>
 
         <div id="errors" style="color: #ff0000">

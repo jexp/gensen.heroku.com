@@ -10,17 +10,6 @@ input.blur {
 #intro {
 	width: 100%;
 }
-#plan {
-	background-color: #32232a;
-	width: 100%;
-	padding-bottom: 12px;
-	border-bottom: 1px solid #975974;
-}
-#choose {
-	border-top: 1px solid #3b0f23;
-	background-color: #d5d5d5;
-	width: 100%;
-}
 table#apps {
 	background-color: whitesmoke;
 }
@@ -55,41 +44,9 @@ label.app {
     font-size: 8pt;
 }
 
-.tag {
-	background-color: #767492;
-	margin: 0px;
-    -moz-border-radius: 6px;
-    -webkit-border-radius: 6px;
-    border-radius: 6px;
-    display: inline-block;
-	padding: 2px 4px;
-}
-.tag a, .tag-icon a {
-	color:  whitesmoke;
-}
-li.tag:hover, li.tag a:hover {
-	text-decoration: none;
-	color: whitesmoke;
-	background-color: #a9abd1;
-	cursor: pointer;
-}
-
 .tag-icon img {
     max-height: 32px;
     max-width: 32px;
-}
-
-.tag-category ul {
-	margin: 0;
-}
-
-.tag-category h3 {
-	color: silver;
-	font-style: normal;
-	text-decoration: none;
-	font-variant: normal;
-	font-weight: lighter;
-	font-size: 12px;
 }
 
 li.tag-icon {

@@ -53,34 +53,41 @@ a.tag:hover {
 </script>
 #{/set}
 
-<div style="max-width: 660px; padding-top: 40px">
-<h4>${app.name} <img src="/public/icons/5-stars.png" style="background-image:url(/public/icons/yellow.jpg); background-repeat: no-repeat; background-size: ${((int)(app.stars*100/10))/2.0}% 100%;height:16px;" title="${app.stars} Stars" alt="${app.stars} Stars"/></h4>
-#{if flash.error}
-    <p style="color:#c00">
-        ${flash.error}
-    </p>
-#{/if}
-<div>
-   <span name="id" style="display: none;">${app.id}</span>
-   <a href="${app.url}" target="_blank">Heroku Demo Page</a><br/>
-    Stack: ${app.stack}<br/>
-   <a href="${app.repository}" target="_blank">Source Link</a><br/>
-   Repository Git URL: ${app.gitUrl}<br/>
-   Application Type: #{list items:app.categories['type']?.tags, as:'tag'} ${tag.name} #{/list} <br/>
-   Language: #{list items:app.categories['language']?.tags, as:'tag'} ${tag.name}  #{/list}<br/>
-   Framework: #{list items:app.categories['framework']?.tags, as:'tag'} ${tag.name}  #{/list}<br/>
-   Build Tool: #{list items:app.categories['build']?.tags, as:'tag'} ${tag.name}  #{/list}<br/>
-   Add-On: #{list items:app.categories['addon']?.tags, as:'tag'} ${tag.name}  #{/list}<br/>
-   <form action="/like" method="POST">
-       <input type="hidden" name="id" value="${app.id}"/>
-       Rating: <img id="stars_image" src="/public/icons/5-stars.png" style="background-image:url(/public/icons/yellow.jpg); background-repeat: no-repeat; background-size: ${((int)(app.stars*100/10))/2.0}% 100%;height:16px;" title="${app.stars} Stars" alt="${app.stars} Stars" onclick="stars_click(this,evt);"/>
-       <input type="hidden" name="stars" value="${app.stars}" id="stars"/>
-       Comment: <input type="text" name="comment"/>
-       <input type="submit" value="Rate"/>
-   </form>
+<div class="primary">
+  <div class="container">
+    <div class="row">
+        <div class="span16 round-box">
+        <h4>${app.name} <img src="/public/icons/5-stars.png" style="background-image:url(/public/icons/yellow.jpg); background-repeat: no-repeat; background-size: ${((int)(app.stars*100/10))/2.0}% 100%;height:16px;" title="${app.stars} Stars" alt="${app.stars} Stars"/></h4>
+        #{if flash.error}
+            <p style="color:#c00">
+                ${flash.error}
+            </p>
+        #{/if}
+        <div>
+           <span name="id" style="display: none;">${app.id}</span>
+           <a href="${app.url}" target="_blank">Heroku Demo Page</a><br/>
+            Stack: ${app.stack}<br/>
+           <a href="${app.repository}" target="_blank">Source Link</a><br/>
+           Repository Git URL: ${app.gitUrl}<br/>
+           Application Type: #{list items:app.categories['type']?.tags, as:'tag'} ${tag.name} #{/list} <br/>
+           Language: #{list items:app.categories['language']?.tags, as:'tag'} ${tag.name}  #{/list}<br/>
+           Framework: #{list items:app.categories['framework']?.tags, as:'tag'} ${tag.name}  #{/list}<br/>
+           Build Tool: #{list items:app.categories['build']?.tags, as:'tag'} ${tag.name}  #{/list}<br/>
+           Add-On: #{list items:app.categories['addon']?.tags, as:'tag'} ${tag.name}  #{/list}<br/>
+           <form action="/like" method="POST">
+               <input type="hidden" name="id" value="${app.id}"/>
+               Rating: <img id="stars_image" src="/public/icons/5-stars.png" style="background-image:url(/public/icons/yellow.jpg); background-repeat: no-repeat; background-size: ${((int)(app.stars*100/10))/2.0}% 100%;height:16px;" title="${app.stars} Stars" alt="${app.stars} Stars" onclick="stars_click(this,evt);"/>
+               <input type="hidden" name="stars" value="${app.stars}" id="stars"/>
+               Comment: <input type="text" name="comment"/>
+               <input type="submit" value="Rate"/>
+           </form>
 
+        </div>
+        </div>
+
+
+    </div>
+  </div>
 </div>
-
-
 <a href="@{Application.index()}">Back to index</a>
-</div>
+
