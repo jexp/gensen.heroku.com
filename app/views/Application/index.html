@@ -12,53 +12,60 @@
 <script type="text/javascript" src="@{'/public/javascripts/pickapp.js'}"></script>
 #{/set}
 
-<div id="createAppForm" class="container">
+
+<div id="intro">
+  <div class="container">
     <div class="row">
-        <div id="search">
-            <form action="/" method="get">
-                <input type="text" name="q" hint="name and or tags" style="with:80%" value="${q}"/><input type="submit"
-                                                                                                          name="search"
-                                                                                                          value="search"/><br/>
-                <input style="font-size: 6pt;" id="input_tags" style="with:80%" type="text" name="tags" size="120"
-                       value="${tags}"/>
-            </form>
+        <h2>Three steps to create a new starter project</h2>
+        <div class="span-one-third">
+            <h3>(1) Plan</h3>
+            <p>Prepare for a new project by choosing the features of your stack</p>
+        </div>
+        <div class="span-one-third">
+            <h3>(2) Select</h3>
+            <p>Choose a template project that matches your criteria</p>
+        </div>
+        <div class="span-one-third">
+            <h3>(3) Generate</h3>
+            <p>Choose a template project that matches your criteria</p>
         </div>
     </div>
-                <a href="/">All</a>
-    <div class="row" id="tags">
-        <div class="alpha span-one-third tag-category" id="cat-language">
-                    <h3>Language:</h3>
+</div>
+<div id="plan">
+  <div class="container">
+    <div class="row">
+        <div class="alpha span8 tag-category" id="cat-language">
+                <h3>Language:</h3>
                 #{set cat:categories['language']/}
                 <ul>
                 #{list items:cat?.tags, as:'tag'}
-                    <li class="tag-icon">
-                    #{if tag.icon}
-                        <a class="tag-icon" onclick="add_tag('${cat.name}','${tag.name}')"><img
-                                src="${tag.icon}" title="${tag.name}"
-                                alt="${tag.displayName}"/><br/>${tag.displayName}</a>
-                    #{/if}
-                    #{else }
-                    <a class="tag-icon" onclick="add_tag('${cat.name}','${tag.name}')"><img
-                                src="@{'/public/icons/anonymous.png'}" title="${tag.name}"
-                                alt="${tag.displayName}"/><br/>${tag.displayName}</a>
-                    #{/else}
+                    <li class="tag">
+                        <a onclick="add_tag('${cat.name}','${tag.name}')">${tag.name}</a>
                     </li>
                 #{/list}
                 </ul>
         </div>
-        <div class="span-one-third tag-category" id="cat-build">
-                    <h3>Build Tool: </h3>
+        <div class="span8 tag-category" id="cat-build">
+                <h3>Build Tool: </h3>
+                <ul>
                 #{set cat:categories['build']/} #{list items:cat?.tags, as:'tag'}
-                    <a class="tag"
-                       onclick="add_tag('${cat.name}','${tag.name}')">${tag.name}</a>
+                    <li class="tag">
+                        <a onclick="add_tag('${cat.name}','${tag.name}')">${tag.name}</a>
+                    </li>
                 #{/list}
+                </ul>
         </div>
-        <div class="span-one-third tag-category" id="cat-framework">
-                    <h3>Framework: </h3>
+    </div>
+    <div class="row">
+        <div class="alpha span16 tag-category" id="cat-framework">
+                <h3>Framework: </h3>
+                <ul>
                 #{set cat:categories['framework']/}  #{list items:cat?.tags, as:'tag'}
-                    <a class="tag"
-                       onclick="add_tag('${cat.name}','${tag.name}')">${tag.name}</a>
+                    <li class="tag">
+                        <a onclick="add_tag('${cat.name}','${tag.name}')">${tag.name}</a>
+                    </li>
                 #{/list}
+                </ul>
         </div>
     </div>
     <div class="row" id="addons">
@@ -83,28 +90,60 @@
                     </ul>
         </div>
     </div>
-    <div clas="row">
-        <div class="span16">
-            <h4>Step 1) Pick an app to start with:</h4>
-
-            <div id="apps" style="margin-left: 30px">
-            #{list items:apps, as:'app'}
-                <div class="row">
-                    <label class="app"><input type="radio" name="app" value="${app.name}"/><a
-                            href="#{if app.isOwner(session.email)}/update/#{/if}#{else}/show/#{/else}${app.id}">${app.name}
-                        <img src="/public/icons/5-stars.png"
-                             style="background-image:url(/public/icons/yellow.jpg); background-repeat: no-repeat; background-size: ${(int)(app.stars*100/5)}% 100%;height:16px;" title="${app.stars} Stars"
-                             alt="${app.stars} Stars"/></a></label>
-                    (${app.categoryTags}, <a target="_blank" href="${app.url}">Demo</a>, <a href="${app.repository}">Source
-                    Code</a>)
-                </div>
-            #{/list}
-                <div class="row"><label class="app"><input id="customGitUrlRadio" type="radio" name="app"
-                                                           value="Custom git url"/>Custom git url</label> <input
-                        id="customGitUrl" type="text" title="git://github.com/foo/bar.git" style="display: none"/></div>
-            </div>
+    <div class="row">
+        <div class="alpha span16">
+            <form id="filter" action="/" method="get">
+                <label for="freeform">Additional Terms:</label><input id="freeform" type="text" name="q" hint="name and or tags" value="${q}"/>
+                <input id="input_tags" type="text" name="tags" value="${tags}"/>
+                <input type="submit" name="search" value="search for matching templates"/>
+            </form>
         </div>
     </div>
+    <a href="/">All</a>
+  </div>
+</div> <!-- plan -->
+    
+<div id="choose">
+    <div class="container">
+    <div clas="row">
+        <div class="alpha span16">
+
+            <table id="apps">
+
+            #{list items:apps, as:'app'}
+                <tr>
+                    <td>
+                        <input type="radio" name="app" value="${app.name}"/>
+                    </td>
+                    <td>
+                        <a href="#{if app.isOwner(session.email)}/update/#{/if}#{else}/show/#{/else}${app.id}">${app.name}
+                    </td>
+                    <td>
+                        <img src="/public/icons/5-stars.png"
+                             style="background-image:url(/public/icons/yellow.jpg); background-repeat: no-repeat; background-size: ${(int)(app.stars*100/5)}% 100%;height:16px;" title="${app.stars} Stars"
+                             alt="${app.stars} Stars"/></a>
+                    </td>
+                    <td>
+                    ${app.categoryTags}, <a target="_blank" href="${app.url}">Demo</a>, <a href="${app.repository}">Source
+                    Code</a>
+                    </td>
+                </tr>
+            #{/list}
+                <tr>
+                    <td>
+                        <input id="customGitUrlRadio" type="radio" name="app" value="Custom git url"/>
+                    </td>
+                    <td>Custom git url</td>
+                     <td colspan="2">
+                        <input id="customGitUrl" type="text" title="git://github.com/foo/bar.git" style="display: none"/>
+                     </td>
+            </table>
+
+        </div>
+    </div>
+    </div>
+</div>
+<div id="generate" class="container">
     <div class="row">
         <h4>Step 2) Clone the app and give access to:</h4>
         <input id="emailAddress" type="text" title="foo@bar.com" class="required email"/>
@@ -115,6 +154,7 @@
         </div>
     </div>
 </div>
+
 <img id="progressBar" src="@{'/public/images/progress.gif'}"
      style="display: none; top: 150px; left: 200px; position: absolute;"/>
 <br/>

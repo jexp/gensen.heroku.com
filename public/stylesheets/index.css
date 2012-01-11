@@ -7,8 +7,29 @@ input.blur {
     color: #999;
 }
 
+#intro {
+	width: 100%;
+}
+#plan {
+	background-color: #32232a;
+	width: 100%;
+	padding-bottom: 12px;
+	border-bottom: 1px solid #975974;
+}
+#choose {
+	border-top: 1px solid #3b0f23;
+	background-color: #d5d5d5;
+	width: 100%;
+}
+table#apps {
+	background-color: whitesmoke;
+}
+
+#templates {
+}
+
 .codeExample {
-    background-color: #dddddd;
+    background-color: #e7bdd0;
     margin-left: 30px;
     padding: 10px;
     font-family: monospace;
@@ -35,17 +56,18 @@ label.app {
 }
 
 .tag {
-	color:  whitesmoke;
 	background-color: #767492;
-	padding: 2px;
-	margin: 2px;
-    -moz-border-radius: 3px;
-    -webkit-border-radius: 3px;
-    border-radius: 3px;
+	margin: 0px;
+    -moz-border-radius: 6px;
+    -webkit-border-radius: 6px;
+    border-radius: 6px;
     display: inline-block;
+	padding: 2px 4px;
 }
-
-a.tag:hover {
+.tag a, .tag-icon a {
+	color:  whitesmoke;
+}
+li.tag:hover, li.tag a:hover {
 	text-decoration: none;
 	color: whitesmoke;
 	background-color: #a9abd1;
@@ -61,6 +83,15 @@ a.tag:hover {
 	margin: 0;
 }
 
+.tag-category h3 {
+	color: silver;
+	font-style: normal;
+	text-decoration: none;
+	font-variant: normal;
+	font-weight: lighter;
+	font-size: 12px;
+}
+
 li.tag-icon {
     float: left;
 	list-style-image: none;
@@ -72,13 +103,15 @@ li.tag-icon {
 	text-transform: capitalize;
 	line-height: 12px;
 	font-size: 10px;
-	margin: 0 0 12px;
 	vertical-align: bottom;
+	padding: 4px 0;
+	margin: 0;
+	overflow: hidden;
 }
 li.tag-icon:hover, li.tag-icon:hover a {
-    -moz-border-radius: 3px;
-    -webkit-border-radius: 3px;
-    border-radius: 3px;
+    -moz-border-radius: 6px;
+    -webkit-border-radius: 6px;
+    border-radius: 6px;
 	text-decoration: none;
 	color: whitesmoke;
 	background-color: #a9abd1;
@@ -88,3 +121,69 @@ li.tag-icon:hover, li.tag-icon:hover a {
 div.alpha {
 	margin-left: 0px;
 }
+
+/* form elements */
+form#filter {
+	margin-bottom: 20px; }
+form#filter fieldset {
+	margin-bottom: 20px; }
+form#filter input[type="text"],
+form#filter input[type="password"],
+form#filter input[type="email"],
+form#filter textarea,
+form#filter select {
+		border: 1px solid #ccc;
+		padding: 6px 4px;
+		outline: none;
+		-moz-border-radius: 2px;
+		-webkit-border-radius: 2px;
+		border-radius: 2px;
+		font: 13px "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif;
+		color: #777;
+		margin: 0;
+		width: 100%;
+		max-width: 100%;
+		display: block;
+		margin-bottom: 0px;
+		background: #fff; }
+form#filter select {
+		padding: 0; }
+form#filter input[type="text"]:focus,
+form#filter input[type="password"]:focus,
+form#filter input[type="email"]:focus,
+form#filter textarea:focus {
+		border: 1px solid #aaa;
+ 		color: #444;
+ 		-moz-box-shadow: 0 0 3px rgba(0,0,0,.2);
+		-webkit-box-shadow: 0 0 3px rgba(0,0,0,.2);
+		box-shadow:  0 0 3px rgba(0,0,0,.2); }
+form#filter textarea {
+		min-height: 60px; }
+form#filter label,
+form#filter legend {
+	/* same as tag-category h5 */
+	color: silver;
+	font-style: normal;
+	text-decoration: none;
+	font-variant: normal;
+	font-weight: lighter;
+	font-size: 12px;
+	text-align: left;
+}
+form#filter select {
+		width: 220px; }
+form#filter input[type="checkbox"] {
+		display: inline; }
+form#filter label span,
+form#filter legend span {
+		font-weight: normal;
+		font-size: 13px;
+		color: #444; }
+form#filter input[type="submit"] {
+	width: 100%;
+}
+#input_tags {
+	visibility: hidden;
+	display: none;
+}
+

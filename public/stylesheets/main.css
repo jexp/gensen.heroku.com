@@ -1,3 +1,5 @@
+/* @override http://localhost:9000/public/stylesheets/main.css */
+
 body {
     font-family: Verdana, sans-serif;
     font-size: 12pt;
@@ -29,6 +31,13 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#b3ffffff', e
     border-bottom-left-radius: 33px 13px;
 }
 
+.topbar-wrapper {
+	height: 80px;
+}
+.topbar-inner {
+	height: 80px;
+	padding-left: 20px;
+}
 .content {
     margin-top: 60px;
 }

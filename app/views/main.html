@@ -18,8 +18,8 @@
 			<div class="topbar-wrapper" style="z-index: 5;">
 			    <div class="topbar" data-dropdown="dropdown">
 			      <div class="topbar-inner">
+                      <h3><a href="/"><img src="@{'/public/images/gensen-logo.png'}"/></a></h3>
 			        <div class="container">
-			            <h3><a href="/">#{get 'title' /}</a></h3>
                         <div style="float: right">
                         #{ifnot session.email}
                         <form action="/login" method="POST">
@@ -40,9 +40,9 @@
 			    </div><!-- /topbar -->
 			  </div>
 			</section>
-			<div class="content">
-        		#{doLayout /}
-			</div>
-		</div>
+        </div>
+        <div class="content">
+            #{doLayout /}
+        </div>
     </body>
 </html>
