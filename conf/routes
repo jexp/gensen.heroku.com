@@ -21,6 +21,7 @@ GET     /favicon.ico                            404
 
 # Map static resources from the /app/public folder to the /public path
 GET     /public/                                staticDir:public
+GET     /challenges/neo4j                       staticFile:public/neo4j_challenge.html
 
 GET    /apps                                    REST.listApps
 GET    /apps/{id}                               REST.getApp
