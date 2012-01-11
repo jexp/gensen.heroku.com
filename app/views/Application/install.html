@@ -1,0 +1,134 @@
+#{extends 'main.html' /}
+#{set title:'Gensen - the Heroku Template Repository' /}
+#{set 'moreStyles'}
+<link rel="stylesheet" href="@{'/public/colorbox.css'}"/>
+<link rel="stylesheet" href="@{'/public/stylesheets/index.css'}"/>
+
+#{/set}
+#{set 'moreScripts'}
+<script type="text/javascript" src="@{'/public/javascripts/jquery.colorbox-min.js'}"></script>
+<script type="text/javascript" src="@{'/public/javascripts/jquery.hint.js'}"></script>
+<script type="text/javascript" src="@{'/public/javascripts/pickapp.js'}"></script>
+#{/set}
+
+<div id="generate" class="container">
+    #{if app}
+    <h1>Clone this Template</h1>
+    <div class="row">
+        <div class="span16 round-box">
+        <h4>${app.name} <img src="/public/icons/5-stars.png" style="background-image:url(/public/icons/yellow.jpg); background-repeat: no-repeat; background-size: ${((int)(app.stars*100/10))/2.0}% 100%;height:16px;" title="${app.stars} Stars" alt="${app.stars} Stars"/></h4>
+        <div>
+           <span name="id" style="display: none;">${app.id}</span>
+           <a href="${app.url}" target="_blank">Heroku Demo Page</a><br/>
+            Stack: ${app.stack}<br/>
+           <a href="${app.repository}" target="_blank">Source Link</a><br/>
+           Repository Git URL: ${app.gitUrl}<br/>
+           Application Type: #{list items:app.categories['type']?.tags, as:'tag'} ${tag.name} #{/list} <br/>
+           Language: #{list items:app.categories['language']?.tags, as:'tag'} ${tag.name}  #{/list}<br/>
+           Framework: #{list items:app.categories['framework']?.tags, as:'tag'} ${tag.name}  #{/list}<br/>
+           Build Tool: #{list items:app.categories['build']?.tags, as:'tag'} ${tag.name}  #{/list}<br/>
+           Add-On: #{list items:app.categories['addon']?.tags, as:'tag'} ${tag.name}  #{/list}<br/>
+        </div>
+        </div>
+    </div>
+    #{/if}
+    <div class="row">
+        <form id="createAppForm" onsubmit="submitForm();">
+        #{if app}
+            <input type="hidden" name="app" value="${app.name}"/>
+            <input type="hidden" name="giturl" value="${app.gitUrl}"/>
+        #{/if}
+        #{else}
+            <input type="hidden" name="app" value="customGitUrl"/>
+            <label  style="width:25%;padding-right: 10px;" for="emailAddress">Custom Git URL:</label>
+            <input style="width:65%; margin-bottom: 10px;" type="url" name="giturl" id="#customGitUrl" placeholder="git@github.com:user/template.git"/><br/>
+        #{/else}
+            <label  style="width:25%;padding-right: 10px;" for="emailAddress">Heroku Email Address: </label>
+            <input  style="width:40%" type="email" id="emailAddress" placeholder="Heroku Email" value="${session?.email}" class="required email"/>
+            <button style="width:25%" id="shareAppButton" class="btn primary">Clone into Account</button>
+            <br/>
+
+            <div id="errors" style="color: #ff0000"></div>
+        </form>
+    </div>
+</div>
+
+<img id="progressBar" src="@{'/public/images/progress.gif'}"
+     style="display: none; top: 150px; left: 200px; position: absolute;"/>
+<br/>
+
+<div id="creatingApp" style="display: none;" class="row">
+
+    <b>Your app is being created!</b><br/>
+    <br/>
+    Shortly you will receive an email that a new app has been shared with you. If you haven't yet signed up for a
+    Heroku account, you will be provided an account activation link. Make sure your account has been activated
+    before proceeding. While your app is being created watch a quick <a class='youtube'
+                                                                        href="http://www.youtube.com/embed/PqLkjJvEMko?rel=0&wmode=transparent"
+                                                                        title="Getting Started With Java on Heroku">Intro
+    to Java on Heroku Video</a>.<br/>
+</div>
+<div id="appReady" style="display: none;">
+    <div class="row">
+        <h3>Your app is ready!</h3>
+
+        <div id="step1">
+            <h4>Step 1) Check out your app</h4>
+            <!-- link here -->
+        </div>
+    </div>
+    <div id="step2" class="row">
+        <h4>Step 2) Setup your environment</h4>
+
+        <h5>a) Install <a href="http://git-scm.com/download">git</a> (used to transfer the app to/from Heroku)</h5>
+
+        <h5>b) Install the Heroku command line client on <a
+                href="http://toolbelt.herokuapp.com/linux/readme">Linux</a>, <a
+                href="http://toolbelt.herokuapp.com/osx/download">Mac</a>, or <a
+                href="http://toolbelt.herokuapp.com/windows/download">Windows</a></h5>
+
+    </div>
+    <div class="row" class="row">
+        <h4>Step 3) Login to Heroku from the command line</h4>
+
+        <p class="codeExample">
+            heroku login
+        </p>
+
+        This should also setup an SSH key and pair it with your Hekoku account.
+    </div>
+    <div class="row">
+        <h4>Step 4) Copy the app from Heroku to your local machine</h4>
+
+        <p id="step4" class="codeExample">
+
+        </p>
+    </div>
+    <div class="row">
+        <h4>Step 5) Makes some changes to the app</h4>
+    </div>
+    <div class="row">
+        <h4>Step 6) Make sure the app still compiles locally</h4>
+
+        <p id="step6" class="codeExample">
+
+        </p>
+    </div>
+    <div class="row">
+        <h4>Step 7) Add the changes to git, commit them, and push the changes to Heroku</h4>
+
+        <p class="codeExample">
+            git add .<br/>
+            git commit -m "changed something"<br/>
+            git push heroku master<br/>
+        </p>
+    </div>
+    <div id="step8" class="row">
+        <h4>Step 8) Check out your changes</h4>
+        <!-- link here -->
+    </div>
+    <div class="row">
+        <h4>Step 9) Keep learning by visiting the <a href="http://devcenter.heroku.com/tags/java">Heroku Dev
+            Center</a></h4>
+    </div>
+</div>

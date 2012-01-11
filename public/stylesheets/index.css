@@ -44,36 +44,6 @@ label.app {
     font-size: 8pt;
 }
 
-.tag-icon img {
-    max-height: 32px;
-    max-width: 32px;
-}
-
-li.tag-icon {
-    float: left;
-	list-style-image: none;
-	list-style-type: none;
-	text-align: center;
-	width: 50px;
-	height: 60px;
-	word-wrap: break-word;
-	text-transform: capitalize;
-	line-height: 12px;
-	font-size: 10px;
-	vertical-align: bottom;
-	padding: 4px 0;
-	margin: 0;
-	overflow: hidden;
-}
-li.tag-icon:hover, li.tag-icon:hover a {
-    -moz-border-radius: 6px;
-    -webkit-border-radius: 6px;
-    border-radius: 6px;
-	text-decoration: none;
-	color: whitesmoke;
-	background-color: #a9abd1;
-	cursor: pointer;
-}
 
 div.alpha {
 	margin-left: 0px;

@@ -44,6 +44,12 @@ public class Application extends Controller {
         render(app,categories);
     }
 
+    public static void install(Integer id) {
+        final AppInfo app = service.getAppInfo(id);
+        final Map<String, Category> categories = service.loadCategories();
+        render(app,categories);
+    }
+
     public static void update(Integer id) {
         final AppInfo app = service.getAppInfo(id);
         if (!loggedIn() || !app.isOwner(email())) {

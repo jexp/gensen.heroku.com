@@ -5,16 +5,18 @@
 # Home page
 GET     /                                       Application.index
 
-POST    /                                       ShareApp.shareApp
-GET    /show/{id}                               Application.show
-GET    /update/{id}                               Application.update
-GET     /add                                    Application.add
-POST    /reindex                                Application.reindex
-POST    /add_addons                             Application.addAddons
-POST    /add                                    Application.addApp
-POST    /login                                    Application.login
-POST    /logout                                    Application.logout
+POST    /                                        ShareApp.shareApp
+GET    /show/{id}                                Application.show
+GET    /update/{id}                              Application.update
+GET     /add                                     Application.add
+POST    /reindex                                 Application.reindex
+POST    /add_addons                              Application.addAddons
+POST    /add                                     Application.addApp
+POST    /login                                   Application.login
+POST    /logout                                  Application.logout
 POST    /like                                    Application.like
+GET    /install/{id}                             Application.install
+GET    /install                                  Application.install
 
 # Ignore favicon requests
 GET     /favicon.ico                            404

@@ -4,32 +4,48 @@
 <link rel="stylesheet" href="@{'/public/colorbox.css'}"/>
 <link rel="stylesheet" href="@{'/public/stylesheets/index.css'}"/>
 
-</style>
 #{/set}
 #{set 'moreScripts'}
 <script type="text/javascript" src="@{'/public/javascripts/jquery.colorbox-min.js'}"></script>
 <script type="text/javascript" src="@{'/public/javascripts/jquery.hint.js'}"></script>
-<script type="text/javascript" src="@{'/public/javascripts/pickapp.js'}"></script>
+<script type="text/javascript">
+    function add_tag(cat, tag) {
+        var tagId = "#"+cat+"_"+tag;
+        var tagElement = $(tagId);
+        var selected = tagElement.hasClass("tag_selected");
+        if (!selected) {
+            tagElement.addClass("tag_selected");
+        } else {
+            tagElement.removeClass("tag_selected");
+        }
+        console.log(tagId+" "+selected);
+        var e = $("#input_tags");
+        var v = e.val();
+        var add = cat + "/" + tag;
+        if (v.split(/, */).indexOf(add) > -1) return;
+        e.val(v.length == 0 ? add : v + ", " + add);
+    }
+
+    $(document).ready(function() {
+        var tags=$("#input_tags").val().split(/, */);
+        for (var i=0;i<tags.length;i++) {
+            var tag=tags[i].replace("/","_");
+            console.log(tag);
+            $("#"+tag).addClass("tag_selected");
+        }
+    });
+</script>
 #{/set}
 
 
 <div id="intro">
-  <div class="container">
-    <div class="row">
-        <h2>create a new project from a template</h2>
-        <div class="span-one-third">
-            <h3>Plan</h3>
-            <p>Prepare for a new project by choosing the features of your stack</p>
-        </div>
-        <div class="span-one-third">
-            <h3>Select</h3>
-            <p>Choose a template project that matches your criteria</p>
-        </div>
-        <div class="span-one-third">
-            <h3>Generate</h3>
-            <p>Clone the project into your heroku account</p>
-        </div>
-    </div>
+             <form action="/" method="get" style="position:relative;left:15%;width:65%">
+                 <input id="input_tags" type="text" name="tags" value="${tags}"/>
+                 <input style="width:75%;display: inline;" type="text" name="q" placeholder="search for title or description" value="${q}"/>
+                 <button style="width: 10%" class="btn primary">Search</button>
+                 <button style="width: 10%" class="btn" onclick="document.location.href='/';return false;">All</button>
+                 <!--input type="submit" name="search" value="search for matching templates"/-->
+             </form>
 </div>
 <div id="plan" class="primary">
   <div class="container">
@@ -39,8 +55,10 @@
                 #{set cat:categories['language']/}
                 <ul>
                 #{list items:cat?.tags, as:'tag'}
-                    <li class="tag">
-                        <a onclick="add_tag('${cat.name}','${tag.name}')">${tag.name}</a>
+                    <li class="tag" id="${cat.name}_${tag.name}">
+                        <a onclick="add_tag('${cat.name}','${tag.name}')"><img
+                                    src="#{if tag.icon}${tag.icon}#{/if}#{else }@{'/public/icons/blank.png'}#{/else}" title="${tag.name}"
+                                    alt="${tag.name}"/><br/>${tag.displayName}</a>
                     </li>
                 #{/list}
                 </ul>
@@ -49,20 +67,36 @@
                 <h3>Build Tool: </h3>
                 <ul>
                 #{set cat:categories['build']/} #{list items:cat?.tags, as:'tag'}
-                    <li class="tag">
-                        <a onclick="add_tag('${cat.name}','${tag.name}')">${tag.name}</a>
+                    <li class="tag" id="${cat.name}_${tag.name}">
+                        <a onclick="add_tag('${cat.name}','${tag.name}')"><img
+                                    src="#{if tag.icon}${tag.icon}#{/if}#{else }@{'/public/icons/blank.png'}#{/else}" title="${tag.name}"
+                                    alt="${tag.name}"/><br/>${tag.displayName}</a>
                     </li>
                 #{/list}
                 </ul>
         </div>
     </div>
     <div class="row">
-        <div class="alpha span16 tag-category" id="cat-framework">
+        <div class="alpha span8 tag-category" id="cat-framework">
                 <h3>Framework: </h3>
                 <ul>
                 #{set cat:categories['framework']/}  #{list items:cat?.tags, as:'tag'}
-                    <li class="tag">
-                        <a onclick="add_tag('${cat.name}','${tag.name}')">${tag.name}</a>
+                    <li class="tag" id="${cat.name}_${tag.name}">
+                        <a onclick="add_tag('${cat.name}','${tag.name}')"><img
+                                    src="#{if tag.icon}${tag.icon}#{/if}#{else }@{'/public/icons/blank.png'}#{/else}" title="${tag.name}"
+                                    alt="${tag.name}"/><br/>${tag.displayName}</a>
+                    </li>
+                #{/list}
+                </ul>
+        </div>
+        <div class="span8 tag-category" id="cat-type">
+                <h3>Type: </h3>
+                <ul>
+                #{set cat:categories['type']/}  #{list items:cat?.tags, as:'tag'}
+                    <li class="tag" id="${cat.name}_${tag.name}">
+                        <a onclick="add_tag('${cat.name}','${tag.name}')"><img
+                                    src="#{if tag.icon}${tag.icon}#{/if}#{else }@{'/public/icons/blank.png'}#{/else}" title="${tag.name}"
+                                    alt="${tag.name}"/><br/>${tag.displayName}</a>
                     </li>
                 #{/list}
                 </ul>
@@ -74,32 +108,15 @@
                 #{set cat:categories['addon']/}
                     <ul>
                 #{list items:cat?.tags, as:'tag'}
-                    <li class="tag-icon">
-                    #{if tag.icon}
-                        <a onclick="add_tag('${cat.name}','${tag.name}')"><img
-                                src="${tag.icon}" title="${tag.name}"
-                                alt="${tag.name}"/><br/>${tag.displayName}</a>
-                    #{/if}
-                    #{else }
+                    <li class="tag" id="${cat.name}_${tag.name}">
                     <a onclick="add_tag('${cat.name}','${tag.name}')"><img
-                                src="@{'/public/icons/anonymous.png'}" title="${tag.name}"
+                                src="#{if tag.icon}${tag.icon}#{/if}#{else }@{'/public/icons/blank.png'}#{/else}" title="${tag.name}"
                                 alt="${tag.name}"/><br/>${tag.displayName}</a>
-                    #{/else}
                     </li>
                 #{/list}
                     </ul>
         </div>
     </div>
-    <div class="row">
-        <div class="alpha span16">
-            <form id="filter" action="/" method="get">
-                <label for="freeform">Additional Terms:</label><input id="freeform" type="text" name="q" hint="name and or tags" value="${q}"/>
-                <input id="input_tags" type="text" name="tags" value="${tags}"/>
-                <input type="submit" name="search" value="search for matching templates"/>
-            </form>
-        </div>
-    </div>
-    <a href="/">All</a>
   </div>
 </div> <!-- plan -->
     
@@ -113,10 +130,10 @@
             #{list items:apps, as:'app'}
                 <tr>
                     <td>
-                        <input type="radio" name="app" value="${app.name}"/>
+                        <a href="/install/${app.id}"><img src="/public/icons/download.png" style="height: 16px;"/></a>
                     </td>
                     <td>
-                        <a href="#{if app.isOwner(session.email)}/update/#{/if}#{else}/show/#{/else}${app.id}">${app.name}
+                        <a href="#{if app.isOwner(session.email)}/update/#{/if}#{else}/show/#{/else}${app.id}">${app.name}</a>
                     </td>
                     <td>
                         <img src="/public/icons/5-stars.png"
@@ -131,105 +148,15 @@
             #{/list}
                 <tr>
                     <td>
-                        <input id="customGitUrlRadio" type="radio" name="app" value="Custom git url"/>
+                        <a href="/install/"><img src="/public/icons/download.png" style="height: 16px;"/></a>
                     </td>
-                    <td>Custom git url</td>
-                     <td colspan="2">
-                        <input id="customGitUrl" type="text" title="git://github.com/foo/bar.git" style="display: none"/>
-                     </td>
+                    <td>Custom Git URL</td>
+                     <td colspan="2"></td>
             </table>
 
         </div>
     </div>
     </div>
 </div>
-<div id="generate" class="container">
-    <div class="row">
-        <input style="width: 100%" id="emailAddress" type="text" title="foo@bar.com" class="required email"/><br/>
-        <button style="width: 100%" id="shareAppButton" class="btn primary">Clone the template, giving access to account above</button>
-        <br/>
-
-        <div id="errors" style="color: #ff0000">
-        </div>
-    </div>
-</div>
-
-<img id="progressBar" src="@{'/public/images/progress.gif'}"
-     style="display: none; top: 150px; left: 200px; position: absolute;"/>
-<br/>
-
-<div id="creatingApp" style="display: none;" class="row">
-
-    <b>Your app is being created!</b><br/>
-    <br/>
-    Shortly you will receive an email that a new app has been shared with you. If you haven't yet signed up for a
-    Heroku account, you will be provided an account activation link. Make sure your account has been activated
-    before proceeding. While your app is being created watch a quick <a class='youtube'
-                                                                        href="http://www.youtube.com/embed/PqLkjJvEMko?rel=0&wmode=transparent"
-                                                                        title="Getting Started With Java on Heroku">Intro
-    to Java on Heroku Video</a>.<br/>
-</div>
-<div id="appReady" style="display: none;">
-    <div class="row">
-        <h3>Your app is ready!</h3>
-
-        <div id="step1">
-            <h4>Step 1) Check out your app</h4>
-            <!-- link here -->
-        </div>
-    </div>
-    <div id="step2" class="row">
-        <h4>Step 2) Setup your environment</h4>
-
-        <h5>a) Install <a href="http://git-scm.com/download">git</a> (used to transfer the app to/from Heroku)</h5>
-
-        <h5>b) Install the Heroku command line client on <a
-                href="http://toolbelt.herokuapp.com/linux/readme">Linux</a>, <a
-                href="http://toolbelt.herokuapp.com/osx/download">Mac</a>, or <a
-                href="http://toolbelt.herokuapp.com/windows/download">Windows</a></h5>
-
-    </div>
-    <div class="row" class="row">
-        <h4>Step 3) Login to Heroku from the command line</h4>
-
-        <p class="codeExample">
-            heroku login
-        </p>
-
-        This should also setup an SSH key and pair it with your Hekoku account.
-    </div>
-    <div class="row">
-        <h4>Step 4) Copy the app from Heroku to your local machine</h4>
-
-        <p id="step4" class="codeExample">
-
-        </p>
-    </div>
-    <div class="row">
-        <h4>Step 5) Makes some changes to the app</h4>
-    </div>
-    <div class="row">
-        <h4>Step 6) Make sure the app still compiles locally</h4>
-
-        <p id="step6" class="codeExample">
-
-        </p>
-    </div>
-    <div class="row">
-        <h4>Step 7) Add the changes to git, commit them, and push the changes to Heroku</h4>
-
-        <p class="codeExample">
-            git add .<br/>
-            git commit -m "changed something"<br/>
-            git push heroku master<br/>
-        </p>
-    </div>
-    <div id="step8" class="row">
-        <h4>Step 8) Check out your changes</h4>
-        <!-- link here -->
-    </div>
-    <div class="row">
-        <h4>Step 9) Keep learning by visiting the <a href="http://devcenter.heroku.com/tags/java">Heroku Dev
-            Center</a></h4>
-    </div>
+  <button style="width: 100%" id="shareAppButton" class="btn primary">Share</button>
 </div>
