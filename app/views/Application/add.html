@@ -93,6 +93,9 @@
                             </td>
                         </tr>
                         #{/ifnot}
+                        #{else }
+                            <input type="hidden" name="id" value="${app.id}"/>
+                        #{/else}
                         <tr>
                             <td>
                                 App Name:
