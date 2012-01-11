@@ -1,0 +1,90 @@
+/* @override http://localhost:9000/public/stylesheets/index.css */
+
+/**
+ * Hack styles for index.html page.
+ */
+input.blur {
+    color: #999;
+}
+
+.codeExample {
+    background-color: #dddddd;
+    margin-left: 30px;
+    padding: 10px;
+    font-family: monospace;
+    font-size: 10pt;
+}
+
+h4 {
+    font-size: 10pt;
+}
+
+h5 {
+    margin-left: 20px;
+    font-size: 8pt;
+}
+
+label.app {
+    width: auto;
+    float: none;
+    font-size: 10pt;
+}
+
+#tags {
+    font-size: 8pt;
+}
+
+.tag {
+	color:  whitesmoke;
+	background-color: #767492;
+	padding: 2px;
+	margin: 2px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    border-radius: 3px;
+    display: inline-block;
+}
+
+a.tag:hover {
+	text-decoration: none;
+	color: whitesmoke;
+	background-color: #a9abd1;
+	cursor: pointer;
+}
+
+.tag-icon img {
+    max-height: 32px;
+    max-width: 32px;
+}
+
+.tag-category ul {
+	margin: 0;
+}
+
+li.tag-icon {
+    float: left;
+	list-style-image: none;
+	list-style-type: none;
+	text-align: center;
+	width: 50px;
+	height: 60px;
+	word-wrap: break-word;
+	text-transform: capitalize;
+	line-height: 12px;
+	font-size: 10px;
+	margin: 0 0 12px;
+	vertical-align: bottom;
+}
+li.tag-icon:hover, li.tag-icon:hover a {
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    border-radius: 3px;
+	text-decoration: none;
+	color: whitesmoke;
+	background-color: #a9abd1;
+	cursor: pointer;
+}
+
+div.alpha {
+	margin-left: 0px;
+}
