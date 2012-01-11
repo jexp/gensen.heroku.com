@@ -25,6 +25,9 @@ public class RepositoryService {
     static final String REPOSITORY = "repository";
     private static final String HEROKUAPP = "herokuapp";
     private static final String STACK = "stack";
+    private static final String DESCRIPTION = "description";
+    private static final String DOCURL = "docurl";
+    private static final String VIDEOURL = "videourl";
     static final String NAME = "name";
     private static final String EMAIL = "email";
     static final String ID = "id";
@@ -47,7 +50,7 @@ public class RepositoryService {
         searchIndex = gdb.index().forNodes("search", LuceneIndexImplementation.FULLTEXT_CONFIG);
     }
 
-    public Integer addApplication(String name, String repository, String giturl, String herokuapp, String stack, String type, String language, String framework, String build, String addOn, String email) {
+    public Integer addApplication(String name, String repository, String giturl, String herokuapp, String stack, String type, String language, String framework, String build, String addOn, String email, String description, String docurl, String videourl) {
         final Node foundApp = appsIndex.get(GIT_URL, giturl).getSingle();
         if (foundApp != null) return intValue(foundApp.getProperty(ID));
 
@@ -59,26 +62,33 @@ public class RepositoryService {
             userNode.createRelationshipTo(appNode,RelTypes.OWNS);
         }
         appsIndex.add(appNode,ID,id);
-        update(appNode, name, repository, giturl, herokuapp, stack);
+        update(appNode, name, repository, giturl, herokuapp, stack,description,docurl,videourl);
         addNewTags(appNode, type, language, framework, build, addOn);
         return id;
     }
 
-    private void update(Node appNode, String name, String repository, String gitUrl, String herokuApp, String stack) {
+    private void update(Node appNode, String name, String repository, String gitUrl, String herokuApp, String stack, String description, String docurl, String videourl) {
         updateProperty(appNode,NAME, name,searchIndex);
         updateProperty(appNode,GIT_URL, gitUrl,appsIndex);
         updateProperty(appNode, REPOSITORY, repository,null);
         updateProperty(appNode, HEROKUAPP, herokuApp,null);
         updateProperty(appNode, STACK, stack,null);
+        updateProperty(appNode, DOCURL, docurl,null);
+        updateProperty(appNode, DESCRIPTION, description,null);
+        updateProperty(appNode, VIDEOURL, videourl,null);
     }
 
     private void updateProperty(Node node, String prop, Object value, Index<Node> index) {
         final Object existing = node.getProperty(prop, null);
         if (existing!=null && existing.equals(value)) return;
-        node.setProperty(prop,value);
+        if (value==null) {
+            node.removeProperty(prop);
+        } else {
+            node.setProperty(prop,value);
+        }
         if (index==null) return;
         if (existing!=null) index.remove(node,prop,existing);
-        index.add(node,prop,value);
+        if (value!=null) index.add(node,prop,value);
     }
 
     public AppInfo getAppInfo(Integer id) {
@@ -156,11 +166,11 @@ public class RepositoryService {
                 null);
         Map<String,Category> categories=new HashMap<String, Category>();
         for (Map<String, Object> row : result) {
-            final String category = row.get("category.category").toString();
+            final String category = string(row, "category.category");
             if (!categories.containsKey(category)) categories.put(category, new Category(category,(Node)row.get("category")));
             final Node tagNode = (Node) row.get("tag");
             if (tagNode==null) continue;
-            final Tag tag = categories.get(category).addTag(tagNode, row.get("tag.tag").toString(), (Integer) row.get("count"));
+            final Tag tag = categories.get(category).addTag(tagNode, string(row, "tag.tag"), (Integer) row.get("count"));
             final Object icon = row.get("tag.icon");
             if (icon != null)  {
                 tag.setIcon(icon.toString());
@@ -234,7 +244,7 @@ public class RepositoryService {
         final String statement = start +
                 " match p = category-[:TAG]->tag, tag<-[:TAGGED]-app<-["+queryType.userRelationship()+":OWNS]-user,app<-[r?:RATED]-() " +
                 ((where.isEmpty()) ? "" : " where " + where) +
-                " return app.id as appid, app.name, app.giturl, app.stack, app.repository, app.herokuapp, user.email? as owner," +
+                " return app.id as appid, app.name, app.giturl, app.stack, app.repository, app.herokuapp, app.description?, app.videourl?, app.docurl?, user.email? as owner," +
                 " collect(extract(n in NODES(p) : coalesce(n.tag?,n.category?))) as tags, avg(r.stars?) as stars " +
                 " order by app.name asc limit 20";
         final Iterable<Map<String,Object>> result = queryEngine.query(
@@ -267,9 +277,13 @@ public class RepositoryService {
     }
 
     private  domain.AppInfo createApp(Map<String, Object> row) {
-        final String appName = row.get("app.name").toString();
+        final String appName = string(row, "app.name");
         final Integer appId = intValue(row.get("appid"));
-        final domain.AppInfo app = new domain.AppInfo(appId, appName,row.get("app.herokuapp").toString(),row.get("app.repository").toString(),row.get("app.stack").toString(),row.get("app.giturl").toString());
+        final String column = "app.herokuapp";
+        final domain.AppInfo app = new domain.AppInfo(appId, appName, string(row, column), string(row, "app.repository"), string(row, "app.stack"), string(row, "app.giturl"));
+        app.setDescription(string(row, "app.description"));
+        app.setVideourl(string(row, "app.videourl"));
+        app.setDocurl(string(row, "app.docurl"));
         final Object stars = row.get("stars");
         if (stars!=null) {
             app.setStars(Float.parseFloat(stars.toString()));
@@ -282,12 +296,17 @@ public class RepositoryService {
         return app;
     }
 
+    private String string(Map<String, Object> row, String column) {
+        final Object value = row.get(column);
+        return value!=null ? value.toString() : null;
+    }
+
     private int intValue(Object value) {
         return ((Number) value).intValue();
     }
 
     private void addTags(Map<String, Object> row, AppInfo app) {
-        final String tagsString = row.get("tags").toString();
+        final String tagsString = string(row, "tags");
         for (String tagPath : tagsString.substring(1, tagsString.length() - 2).split("(\\), )?List\\(")) {
             if (tagPath.isEmpty()) continue;
             final String[] pair = tagPath.split(COMMA_SPLIT);
@@ -309,19 +328,19 @@ public class RepositoryService {
         }
     }
 
-    public void updateApplication(Integer id, String name, String repository, String giturl, String herokuapp, String stack, String type, String language, String framework, String build, String addon) {
+    public void updateApplication(Integer id, String name, String repository, String giturl, String herokuapp, String stack, String type, String language, String framework, String build, String addon, String description,String docurl, String videourl) {
         final Node app = appsIndex.get(ID, id).getSingle();
         if (app ==null) throw new ProcessException("Application with id "+id+" not found");
-        update(app,name,repository,giturl, herokuapp,stack);
+        update(app,name,repository,giturl, herokuapp,stack, description, docurl, videourl);
         addNewTags(app, type, language, framework, build, addon);
     }
 
     public Integer addApplication(Map<String, String> data) {
-        return addApplication(data.get(NAME),data.get(REPOSITORY),data.get(GIT_URL),data.get(HEROKUAPP),data.get(STACK),data.get("type"),data.get("language"),data.get("framework"),data.get("build"),data.get("addon"),data.get("email"));
+        return addApplication(data.get(NAME),data.get(REPOSITORY),data.get(GIT_URL),data.get(HEROKUAPP),data.get(STACK),data.get("type"),data.get("language"),data.get("framework"),data.get("build"),data.get("addon"),data.get("email"),  data.get(DESCRIPTION),data.get(DOCURL),data.get(VIDEOURL));
     }
 
     public void updateApplication(Integer id, Map<String, String> data) {
-        updateApplication(id, data.get(NAME),data.get(REPOSITORY),data.get(GIT_URL),data.get(HEROKUAPP),data.get(STACK),data.get("type"),data.get("language"),data.get("framework"),data.get("build"),data.get("addon"));
+        updateApplication(id, data.get(NAME),data.get(REPOSITORY),data.get(GIT_URL),data.get(HEROKUAPP),data.get(STACK),data.get("type"),data.get("language"),data.get("framework"),data.get("build"),data.get("addon"), data.get(DESCRIPTION),data.get(DOCURL),data.get(VIDEOURL));
     }
 
     public enum RelTypes implements RelationshipType { TAG, CATEGORY, RATED, TAGGED, OWNS }

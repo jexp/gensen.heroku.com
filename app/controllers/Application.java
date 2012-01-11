@@ -57,7 +57,7 @@ public class Application extends Controller {
             return;
         }
         final Map<String, Category> categories = service.loadCategories();
-        render(app,categories);
+        renderTemplate("Application/add.html",app,categories);
     }
 
     public static void index(String tags, String q) {
@@ -101,13 +101,13 @@ public class Application extends Controller {
 
 
     public static void addApp(String name, String repository, String giturl, String herokuapp, String stack, String type, String language,
-                              String framework, String build, String addon, String email) {
-        service.addApplication(name, repository, giturl, herokuapp, stack, type, language, framework, build, addon, email);
+                              String framework, String build, String addon, String email, String description, String docurl, String videourl) {
+        service.addApplication(name, repository, giturl, herokuapp, stack, type, language, framework, build, addon, email, description,docurl,videourl);
         index();
     }
     public static void updateApp(Integer id,String name, String repository, String giturl, String herokuapp, String stack, String type, String language,
-                              String framework, String build, String addon) {
-        service.updateApplication(id, name, repository, giturl, herokuapp, stack, type, language, framework, build, addon);
+                              String framework, String build, String addon,String description, String docurl, String videourl) {
+        service.updateApplication(id, name, repository, giturl, herokuapp, stack, type, language, framework, build, addon, description,docurl,videourl);
         index();
     }
 

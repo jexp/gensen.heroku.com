@@ -74,7 +74,7 @@ public class RepositoryServiceTest {
     }
 
     private Integer addApplication() {
-        return service.addApplication("name","repository","giturl","herokuapp","cedar","demo","java","rails","maven","neo4j","test@test.de");
+        return service.addApplication("name","repository","giturl","herokuapp","cedar","demo","java","rails","maven","neo4j","test@test.de", description, docurl, videourl);
     }
 
     @Test
@@ -111,7 +111,7 @@ public class RepositoryServiceTest {
     @Test
     public void testLoadApps() throws Exception {
         addApplication();
-        service.addApplication("name2","repository2","giturl2","herokuapp2","cedar","webapp","ruby","sinatra","rake","graphdb","test@test.de");
+        service.addApplication("name2","repository2","giturl2","herokuapp2","cedar","webapp","ruby","sinatra","rake","graphdb","test@test.de", description, docurl, videourl);
         final Map<Integer, AppInfo> apps = service.loadApps(null, "name*");
         assertEquals(2,apps.size());
         assertEquals("ruby", apps.get(2).getCategories().get("language").getTag("ruby").getName());

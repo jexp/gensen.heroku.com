@@ -1,5 +1,7 @@
 package domain;
 
+import com.google.gson.Gson;
+
 import java.util.*;
 
 /**
@@ -16,6 +18,9 @@ public class AppInfo {
     private String owner;
     private Map<String,Category> categories=new HashMap<String, Category>(); // todo
     private float stars = 0f;
+    private String description;
+    private String videourl;
+    private String docurl;
 
     public AppInfo(Integer id, String name, String url, String repository, String stack, String gitUrl) {
         this.id = id;
@@ -105,5 +110,33 @@ public class AppInfo {
     }
     public boolean isOwner(String user) {
         return this.owner!=null && user!=null && user.equals(owner);
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public void setVideourl(String videourl) {
+        this.videourl = videourl;
+    }
+
+    public void setDocurl(String docurl) {
+        this.docurl = docurl;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public String getVideourl() {
+        return videourl;
+    }
+
+    public String getDocurl() {
+        return docurl;
+    }
+
+    public String getJson() {
+        return new Gson().toJson(this);
     }
 }

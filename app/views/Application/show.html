@@ -65,9 +65,16 @@ a.tag:hover {
         #{/if}
         <div>
            <span name="id" style="display: none;">${app.id}</span>
+           Description: ${app.description}<br/>
+            #{if app.docurl}
+                <a href="${app.docurl}" target="_blank">Documentation</a><br/>
+            #{/if}
            <a href="${app.url}" target="_blank">Heroku Demo Page</a><br/>
-            Stack: ${app.stack}<br/>
+           Stack: ${app.stack}<br/>
            <a href="${app.repository}" target="_blank">Source Link</a><br/>
+           #{if app.videourl}
+               <iframe src="${app.videourl}" target="_blank">Documentation</iframe><br/>
+           #{/if}
            Repository Git URL: ${app.gitUrl}<br/>
            Application Type: #{list items:app.categories['type']?.tags, as:'tag'} ${tag.name} #{/list} <br/>
            Language: #{list items:app.categories['language']?.tags, as:'tag'} ${tag.name}  #{/list}<br/>
