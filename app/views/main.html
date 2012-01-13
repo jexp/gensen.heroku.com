@@ -45,14 +45,14 @@
                         </form>
                         #{/ifnot}
                         #{else }
-                            <a href="#">${session.email}</a>
+                            <a href="#"><img src="#{gravatar.url session.email/}" class="gravatar"/>${session.email}</a>
                             <form action="/logout" method="POST">
                                 <input type="submit" name="logout" value="Logout"/>
                             </form>
                         #{/else}
                         </div>
 		          	</div>
-                      <a id="banner" href="/challenges/neo4j"><h1>Neo4j Challenge</h1></a>
+                      <!--a id="banner" href="/challenges/neo4j"><h1>Neo4j Challenge</h1></a-->
 			      </div><!-- /topbar-inner -->
 			    </div><!-- /topbar -->
 			  </div>

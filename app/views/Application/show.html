@@ -38,6 +38,9 @@ input, select {
 a.tag:hover {
     text-decoration: underline;
 }
+.comment {
+    width: 80%;
+}
 </style>
 #{/set}
 #{set 'moreScripts'}
@@ -57,7 +60,7 @@ a.tag:hover {
   <div class="container">
     <div class="row">
         <div class="span16 round-box">
-        <h4>${app.name} <img src="/public/icons/5-stars.png" style="background-image:url(/public/icons/yellow.jpg); background-repeat: no-repeat; background-size: ${((int)(app.stars*100/10))/2.0}% 100%;height:16px;" title="${app.stars} Stars" alt="${app.stars} Stars"/></h4>
+        <h4>${app.name} <img src="/public/icons/5-stars.png" style="background-image:url(/public/icons/yellow.jpg); background-repeat: no-repeat; background-size: ${app.starsPercent} 100%;height:16px;" title="${app.stars} Stars" alt="${app.stars} Stars"/></h4>
         #{if flash.error}
             <p style="color:#c00">
                 ${flash.error}
@@ -81,14 +84,19 @@ a.tag:hover {
            Framework: #{list items:app.categories['framework']?.tags, as:'tag'} ${tag.name}  #{/list}<br/>
            Build Tool: #{list items:app.categories['build']?.tags, as:'tag'} ${tag.name}  #{/list}<br/>
            Add-On: #{list items:app.categories['addon']?.tags, as:'tag'} ${tag.name}  #{/list}<br/>
-           <form action="/like" method="POST">
+           #{if session.email }
+            #{set myrating: app.getRating(session.email)/}
+            <form action="/like" method="POST">
                <input type="hidden" name="id" value="${app.id}"/>
-               Rating: <img id="stars_image" src="/public/icons/5-stars.png" style="background-image:url(/public/icons/yellow.jpg); background-repeat: no-repeat; background-size: ${((int)(app.stars*100/10))/2.0}% 100%;height:16px;" title="${app.stars} Stars" alt="${app.stars} Stars" onclick="stars_click(this,evt);"/>
-               <input type="hidden" name="stars" value="${app.stars}" id="stars"/>
-               Comment: <input type="text" name="comment"/>
+               Rating: <img id="stars_image" src="/public/icons/5-stars.png" style="background-image:url(/public/icons/yellow.jpg); background-repeat: no-repeat; background-size: ${myrating.starsPercent} 100%;height:16px;" title="${myrating.stars} Stars" alt="${myrating.stars} Stars" onclick="stars_click(this,evt);"/>
+               <input type="hidden" name="stars" value="${myrating?.stars}" id="stars"/>
+               Comment: <input type="text" name="comment" value="${myrating?.comment}"/>
                <input type="submit" value="Rate"/>
            </form>
-
+           #{/if}
+           #{list items:app.ratings, as:'rating' }
+           <div class="comment"><strong><img src="#{gravatar.url rating.rater/}" class="gravatar"/> ${rating.rater.replaceAll("(.{3}).*(@.+)","\$1...\$2")}</strong> said: ${rating.comment} <img src="/public/icons/5-stars.png" style="float:right;background-image:url(/public/icons/yellow.jpg); background-repeat: no-repeat; background-size: ${rating.starsPercent} 100%;height:16px;" title="${rating.stars} Stars" alt="${rating.stars} Stars"/></div>
+           #{/list}
         </div>
         </div>
 

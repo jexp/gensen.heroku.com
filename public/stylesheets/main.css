@@ -145,3 +145,9 @@ li.tag:hover, li.tag:hover a {
 	background-color: #a9abd1;
 	cursor: pointer;
 }
+.gravatar {
+    max-height: 24px;
+    max-width: 24px;
+    vertical-align: middle;
+    margin-right: 5px;
+}

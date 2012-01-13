@@ -16,6 +16,7 @@ import play.mvc.Http;
 import java.util.*;
 
 import static java.lang.System.getenv;
+import static org.neo4j.helpers.collection.MapUtil.map;
 
 public class Application extends Controller {
 
@@ -165,7 +166,7 @@ public class Application extends Controller {
 
         for (App herokuApp : api.listApps()) {
             if (isShared(sharedApps, herokuApp)) continue;
-            final AppInfo appInfo = new AppInfo(null, herokuApp.getName(), herokuApp.getWeb_url(), null, toStack(herokuApp), null);
+            final AppInfo appInfo = new AppInfo(map(AppInfo.NAME, herokuApp.getName(), AppInfo.HEROKUAPP,herokuApp.getWeb_url(), AppInfo.STACK, toStack(herokuApp)));
             for (Addon addon : api.addonsFor(herokuApp)) {
                 appInfo.addTag("addon",addonName(addon));
             }

@@ -137,7 +137,7 @@
                     </td>
                     <td>
                         <img src="/public/icons/5-stars.png"
-                             style="background-image:url(/public/icons/yellow.jpg); background-repeat: no-repeat; background-size: ${(int)(app.stars*100/5)}% 100%;height:16px;" title="${app.stars} Stars"
+                             style="background-image:url(/public/icons/yellow.jpg); background-repeat: no-repeat; background-size: ${app.starsPercent} 100%;height:16px;" title="${app.stars} Stars"
                              alt="${app.stars} Stars"/></a>
                     </td>
                     <td>
@@ -157,6 +157,4 @@
         </div>
     </div>
     </div>
-</div>
-  <button style="width: 100%" id="shareAppButton" class="btn primary">Share</button>
 </div>

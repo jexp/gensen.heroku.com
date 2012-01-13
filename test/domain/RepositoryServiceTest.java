@@ -62,13 +62,13 @@ public class RepositoryServiceTest {
     @Test
     public void testAddApplication() throws Exception {
         addApplication();
-        final Node app = appsIndex.get(RepositoryService.GIT_URL, "giturl").getSingle();
+        final Node app = appsIndex.get(AppInfo.GIT_URL, "giturl").getSingle();
         assertNotNull(app);
-        assertEquals("repository",app.getProperty(RepositoryService.REPOSITORY));
-        final Integer id = (Integer) app.getProperty(RepositoryService.ID);
+        assertEquals("repository",app.getProperty(AppInfo.REPOSITORY));
+        final Integer id = (Integer) app.getProperty(AppInfo.ID);
         System.out.println("id = " + id);
-        assertEquals(app,appsIndex.get(RepositoryService.ID,id).getSingle());
-        assertEquals(app,searchIndex.query(RepositoryService.NAME+":nam*").getSingle());
+        assertEquals(app,appsIndex.get(AppInfo.ID,id).getSingle());
+        assertEquals(app,searchIndex.query(AppInfo.NAME+":nam*").getSingle());
         final Collection<Relationship> tagRels = IteratorUtil.asCollection(app.getRelationships(Direction.OUTGOING, RepositoryService.RelTypes.TAGGED));
         assertEquals(1,tagRels.size());
     }
@@ -126,11 +126,11 @@ public class RepositoryServiceTest {
         assertEquals(1,allApps.size());
         final AppInfo appInfo = service.getAppInfo(id);
         assertEquals("name1", appInfo.getName());
-        assertEquals(id,searchIndex.query("name:name1").getSingle().getProperty(RepositoryService.ID));
+        assertEquals(id,searchIndex.query("name:name1").getSingle().getProperty(AppInfo.ID));
         assertNull(searchIndex.query("name:name").getSingle());
         assertEquals(1, IteratorUtil.count(searchIndex.query("name:nam*").iterator()));
         assertEquals("goturl", appInfo.getGitUrl());
-        assertNull(appsIndex.get(RepositoryService.GIT_URL, "giturl").getSingle());
+        assertNull(appsIndex.get(AppInfo.GIT_URL, "giturl").getSingle());
         assertEquals(asList("java","ruby"),appInfo.getTags());
     }
 
@@ -148,7 +148,7 @@ public class RepositoryServiceTest {
         final Integer appId = addApplication();
         Relationship rel = service.like(appId, "test@test.de", 5, "comment");
         assertRatedRel(rel, 5, "comment");
-        final Node node = appsIndex.get(RepositoryService.ID, appId).getSingle();
+        final Node node = appsIndex.get(AppInfo.ID, appId).getSingle();
         rel = node.getSingleRelationship(RepositoryService.RelTypes.RATED, Direction.INCOMING);
         assertRatedRel(rel, 5, "comment");
     }
@@ -159,7 +159,7 @@ public class RepositoryServiceTest {
         service.like(appId, "test@test.de", 5, "comment");
         service.like(appId, "test2@test.de", 2, "comment2");
 
-        final Node node = appsIndex.get(RepositoryService.ID, appId).getSingle();
+        final Node node = appsIndex.get(AppInfo.ID, appId).getSingle();
         int relCount = IteratorUtil.count(node.getRelationships(RepositoryService.RelTypes.RATED, Direction.INCOMING));
         assertEquals(2, relCount);
         final AppInfo appInfo = service.getAppInfo(appId);
