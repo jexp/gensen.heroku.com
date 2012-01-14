@@ -92,6 +92,7 @@ a.tag:hover {
                <input type="hidden" name="stars" value="${myrating?.stars}" id="stars"/>
                Comment: <input type="text" name="comment" value="${myrating?.comment}"/>
                <input type="submit" value="Rate"/>
+               <img style="vertical-align:middle; max-width: 24px; max-height: 24px;" src="/public/icons/twitter.jpg" onClick="window.open('https://twitter.com/intent/tweet?original_referer=http%3A%2F%2Fgensen.heroku.com%2F&source=tweetbutton&text=My opinion about &quot;${app.name}&quot; is &quot;${myrating.comment}&quot;. I rated it with ${myrating.stars} Stars&url=http%3A%2F%2Fgensen.heroku.com%2Fshow%2f${app.id}&via=heroku','tweet this app','height=400,width=400');return false;"/></a>
            </form>
            #{/if}
            #{list items:app.ratings, as:'rating' }
