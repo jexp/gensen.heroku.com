@@ -60,7 +60,7 @@ public class AppInfo {
     }
 
     public String getRepository() {
-        return (String) props.get(NAME);
+        return (String) props.get(REPOSITORY);
     }
 
     public String getGitUrl() {
