@@ -18,8 +18,7 @@ POST    /like                                    Application.like
 GET    /install/{id}                             Application.install
 GET    /install                                  Application.install
 
-# Ignore favicon requests
-GET     /favicon.ico                            404
+GET     /favicon.ico                            staticFile:public/icons/favicon.ico
 
 # Map static resources from the /app/public folder to the /public path
 GET     /public/                                staticDir:public
