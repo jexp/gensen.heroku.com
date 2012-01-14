@@ -14,7 +14,7 @@ require:
     - org.neo4j -> neo4j-kernel 1.6.M02
     - org.neo4j -> neo4j-cypher 1.6.M02
     - org.neo4j -> neo4j-kernel 1.6.M02 test
-#    - play -> gravatar 1.0.2
+    - play -> gravatar 1.0.2
 
 repositories:
     - jgit-repository:
