@@ -32,7 +32,7 @@ public class AppInfo {
     }
 
     public AppInfo(Node app) {
-        this(props(app, ID, NAME, REPOSITORY, STACK, GIT_URL, VIDEOURL, DOCURL, DESCRIPTION ));
+        this(props(app, ID, NAME, REPOSITORY, STACK, GIT_URL, VIDEOURL, DOCURL, DESCRIPTION, HEROKUAPP ));
     }
 
     public AppInfo(Map<String, Object> props) {

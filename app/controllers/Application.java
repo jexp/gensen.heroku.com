@@ -178,7 +178,8 @@ public class Application extends Controller {
     private static boolean isShared(Collection<AppInfo> sharedApps, App app) {
         final String url = app.getWeb_url();
         for (AppInfo sharedApp : sharedApps) {
-            if (sharedApp.getUrl().equals(url)) return true;
+            final String sharedUrl = sharedApp.getUrl();
+            if (sharedUrl !=null && sharedUrl.equals(url)) return true;
         }
         return false;
     }
