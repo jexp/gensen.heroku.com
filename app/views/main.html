@@ -45,7 +45,7 @@
                         </form>
                         #{/ifnot}
                         #{else }
-                            <a href="#"><img src="#{gravatar.url session.email/}" class="gravatar"/>${session.email}</a>
+                            <a href="#"><!--img src="{gravatar.url session.email/}" class="gravatar"/-->${session.email}</a>
                             <form action="/logout" method="POST">
                                 <input type="submit" name="logout" value="Logout"/>
                             </form>
