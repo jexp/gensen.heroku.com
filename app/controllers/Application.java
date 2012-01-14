@@ -86,7 +86,7 @@ public class Application extends Controller {
         if (loggedIn()) {
             service.like(id,email(),stars,comment);
         }
-        show(id);
+        index();
     }
     public static void add() {
         Map<String, Category> categories = service.loadCategories();
