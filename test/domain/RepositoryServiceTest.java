@@ -74,7 +74,7 @@ public class RepositoryServiceTest {
     }
 
     private Integer addApplication() {
-        return service.addApplication("name","repository","giturl","herokuapp","cedar","demo","java","rails","maven","neo4j","test@test.de", description, docurl, videourl);
+        return service.addApplication("name","repository","giturl","herokuapp","cedar","demo","java","rails","maven","neo4j","test@test.de", "description", "docurl", "videourl");
     }
 
     @Test
@@ -111,7 +111,7 @@ public class RepositoryServiceTest {
     @Test
     public void testLoadApps() throws Exception {
         addApplication();
-        service.addApplication("name2","repository2","giturl2","herokuapp2","cedar","webapp","ruby","sinatra","rake","graphdb","test@test.de", description, docurl, videourl);
+        service.addApplication("name2","repository2","giturl2","herokuapp2","cedar","webapp","ruby","sinatra","rake","graphdb","test@test.de", "description", "docurl", "videourl");
         final Map<Integer, AppInfo> apps = service.loadApps(null, "name*");
         assertEquals(2,apps.size());
         assertEquals("ruby", apps.get(2).getCategories().get("language").getTag("ruby").getName());
@@ -121,7 +121,7 @@ public class RepositoryServiceTest {
     public void testUpdateApplication() throws Exception {
         addApplication();
         final Integer id = 1;
-        service.updateApplication(id,"name1","repository","goturl","herokuapp","bamboo","type","ruby, java","rails","maven","neo4j");
+        service.updateApplication(id,"name1","repository","goturl","herokuapp","bamboo","type","ruby, java","rails","maven","neo4j","description", "docurl", "videourl");
         final Map<Integer, AppInfo> allApps = service.loadApps(null, null);
         assertEquals(1,allApps.size());
         final AppInfo appInfo = service.getAppInfo(id);
@@ -147,6 +147,16 @@ public class RepositoryServiceTest {
     public void testLike() {
         final Integer appId = addApplication();
         Relationship rel = service.like(appId, "test@test.de", 5, "comment");
+        assertRatedRel(rel, 5, "comment");
+        final Node node = appsIndex.get(AppInfo.ID, appId).getSingle();
+        rel = node.getSingleRelationship(RepositoryService.RelTypes.RATED, Direction.INCOMING);
+        assertRatedRel(rel, 5, "comment");
+    }
+
+    @Test
+    public void testLikeUnknownUser() {
+        final Integer appId = addApplication();
+        Relationship rel = service.like(appId, "another-test@test.de", 5, "comment");
         assertRatedRel(rel, 5, "comment");
         final Node node = appsIndex.get(AppInfo.ID, appId).getSingle();
         rel = node.getSingleRelationship(RepositoryService.RelTypes.RATED, Direction.INCOMING);

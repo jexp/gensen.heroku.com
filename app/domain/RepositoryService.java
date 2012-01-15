@@ -200,7 +200,7 @@ public class RepositoryService {
             }
         }, SEARCH {
             public String queryFor(Object param) {
-                return " start app=node:search('name:"+param+"') ";
+                return " start app=node:search('name:*"+param+"*') ";
             }
         }, ID {
             public String queryFor(Object param) {
