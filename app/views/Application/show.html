@@ -50,6 +50,7 @@ a.tag:hover {
 <script type="text/javascript">
     function stars_click(e,evt) {
         var stars=Math.round((evt.x-e.offsetLeft)/e.offsetWidth*10)/2;
+        console.log(stars);
         $("#stars").val(stars);
         $("#stars_image").css({"background-size":(stars*100/5)+"% 100%"})
     }
