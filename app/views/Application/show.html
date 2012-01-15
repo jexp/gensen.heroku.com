@@ -84,7 +84,8 @@ a.tag:hover {
            Framework: #{list items:app.categories['framework']?.tags, as:'tag'} ${tag.name}  #{/list}<br/>
            Build Tool: #{list items:app.categories['build']?.tags, as:'tag'} ${tag.name}  #{/list}<br/>
            Add-On: #{list items:app.categories['addon']?.tags, as:'tag'} ${tag.name}  #{/list}<br/>
-           #{if session.email }
+           Clone: <a href="/install/${app.id}"><img src="/public/icons/download.png" style="height: 24px;"/></a><br/>
+            #{if session.email }
             #{set myrating: app.getRating(session.email)/}
             <form action="/like" method="POST">
                <input type="hidden" name="id" value="${app.id}"/>
