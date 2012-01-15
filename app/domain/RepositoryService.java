@@ -169,6 +169,7 @@ public class RepositoryService {
     }
 
     public Relationship like(Integer appid, String email, int stars, String comment) {
+        getOrCreateUser(email);
         final QueryResult<Map<String,Object>> result = queryEngine.query("start user=node:users(email={email}), app=node:apps(id={id}) match user-[r?:RATED]->app return user,r,app", map("email", email, AppInfo.ID, appid));
         for (Map<String, Object> row : result) {
             Relationship rel = (Relationship) row.get("r");
