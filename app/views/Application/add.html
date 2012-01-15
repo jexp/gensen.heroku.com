@@ -21,9 +21,10 @@
         e.val(v.length == 0 ? tag : v + ", " + tag)
     }
     function share_app(app) {
-        $("#share_form input[name=name]").val(app.name);
-        $("#share_form select[name=stack]").val(app.stack);
-        $("#share_form input[name=herokuapp]").val(app.url);
+        console.log(app);
+        $("#share_form input[name=name]").val(app.props.name);
+        $("#share_form select[name=stack]").val(app.props.stack);
+        $("#share_form input[name=herokuapp]").val(app.props.herokuapp);
 
         var addons=[];
         var tags = app.categories.addon.tags;
@@ -36,6 +37,7 @@
     }
     function selected_app() {
         var json = $("#herokuapps").val();
+        console.log(json);
         if (!json) return {};
         return $.parseJSON(json);
     }
