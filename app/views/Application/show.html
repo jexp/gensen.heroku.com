@@ -76,7 +76,7 @@ a.tag:hover {
            Stack: ${app.stack}<br/>
            <a href="${app.repository}" target="_blank">Source Link</a><br/>
            #{if app.videourl}
-               <iframe src="${app.videourl}" target="_blank">Documentation</iframe><br/>
+               <iframe width="560" height="315" src="${app.videourl}"><a href="${app.videourl}" target="_blank">Video URL</a> </iframe><br/>
            #{/if}
            Repository Git URL: ${app.gitUrl}<br/>
            Application Type: #{list items:app.categories['type']?.tags, as:'tag'} ${tag.name} #{/list} <br/>
