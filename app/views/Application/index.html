@@ -40,9 +40,9 @@
                 add_tag($(this),cat,tag);
            });
         });
-        if ($("#results")) {
+        #{if tags || q}
             document.location.href=document.location.href+"#results";
-        }
+        #{/if}
     });
 </script>
 #{/set}
@@ -133,9 +133,7 @@
   </div>
 </div> <!-- plan -->
 
-#{if apps}
-    <a id="results" name="results"></a>
-#{/if}
+<a id="results" name="results"></a>
 <div id="choose" class="secondary">
     <div class="container">
     <div clas="row">
