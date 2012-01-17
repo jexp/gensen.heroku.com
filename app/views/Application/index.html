@@ -9,16 +9,14 @@
 <script type="text/javascript" src="@{'/public/javascripts/jquery.colorbox-min.js'}"></script>
 <script type="text/javascript" src="@{'/public/javascripts/jquery.hint.js'}"></script>
 <script type="text/javascript">
-    function add_tag(cat, tag) {
-        var tagId = "#"+cat+"_"+tag;
-        var tagElement = $(tagId);
+    function add_tag(tagElement,cat,tag) {
         var selected = tagElement.hasClass("tag_selected");
         if (!selected) {
             tagElement.addClass("tag_selected");
         } else {
             tagElement.removeClass("tag_selected");
         }
-        console.log(tagId+" "+selected);
+        console.log(tagElement.attr("id")+" "+selected);
         var e = $("#input_tags");
         var v = e.val();
         var add = cat + "/" + tag;
@@ -30,8 +28,19 @@
         var tags=$("#input_tags").val().split(/, */);
         for (var i=0;i<tags.length;i++) {
             var tag=tags[i].replace("/","_");
-            console.log(tag);
             $("#"+tag).addClass("tag_selected");
+        }
+
+        $(".tag").each(function() {
+            var e=$(this);
+            var cat=e.attr("cat");
+            var tag=e.attr("tag");
+            e.click(function(){
+                add_tag(e,cat,tag);
+           });
+        });
+        if ($("#results")) {
+            document.location.href=document.location.href+"#results";
         }
     });
 </script>
@@ -45,6 +54,9 @@
                  <button style="width: 10%" class="btn primary">Search</button>
                  <button style="width: 10%" class="btn" onclick="document.location.href='/';return false;">All</button>
                  <!--input type="submit" name="search" value="search for matching templates"/-->
+                 #{if apps}
+                     <div style="padding:2px;"><a style="color:gray;" href="#results">${apps.size()} Results, took ${delta} ms.</a></div>
+                 #{/if}
              </form>
 </div>
 <div id="plan" class="primary">
@@ -55,8 +67,8 @@
                 #{set cat:categories['language']/}
                 <ul>
                 #{list items:cat?.tags, as:'tag'}
-                    <li class="tag" id="${cat.name}_${tag.name}">
-                        <a onclick="add_tag('${cat.name}','${tag.name}')"><img
+                    <li class="tag" id="${cat.name}_${tag.name}" tag="${tag.name}" cat="${cat.name}">
+                        <a ><img
                                     src="#{if tag.icon}${tag.icon}#{/if}#{else }@{'/public/icons/blank.png'}#{/else}" title="${tag.name}"
                                     alt="${tag.name}"/><br/>${tag.displayName}</a>
                     </li>
@@ -67,8 +79,8 @@
                 <h3>Build Tool: </h3>
                 <ul>
                 #{set cat:categories['build']/} #{list items:cat?.tags, as:'tag'}
-                    <li class="tag" id="${cat.name}_${tag.name}">
-                        <a onclick="add_tag('${cat.name}','${tag.name}')"><img
+                    <li class="tag" id="${cat.name}_${tag.name}" tag="${tag.name}" cat="${cat.name}">
+                        <a ><img
                                     src="#{if tag.icon}${tag.icon}#{/if}#{else }@{'/public/icons/blank.png'}#{/else}" title="${tag.name}"
                                     alt="${tag.name}"/><br/>${tag.displayName}</a>
                     </li>
@@ -81,8 +93,8 @@
                 <h3>Framework: </h3>
                 <ul>
                 #{set cat:categories['framework']/}  #{list items:cat?.tags, as:'tag'}
-                    <li class="tag" id="${cat.name}_${tag.name}">
-                        <a onclick="add_tag('${cat.name}','${tag.name}')"><img
+                    <li class="tag" id="${cat.name}_${tag.name}" tag="${tag.name}" cat="${cat.name}">
+                        <a ><img
                                     src="#{if tag.icon}${tag.icon}#{/if}#{else }@{'/public/icons/blank.png'}#{/else}" title="${tag.name}"
                                     alt="${tag.name}"/><br/>${tag.displayName}</a>
                     </li>
@@ -93,8 +105,8 @@
                 <h3>Type: </h3>
                 <ul>
                 #{set cat:categories['type']/}  #{list items:cat?.tags, as:'tag'}
-                    <li class="tag" id="${cat.name}_${tag.name}">
-                        <a onclick="add_tag('${cat.name}','${tag.name}')"><img
+                    <li class="tag" id="${cat.name}_${tag.name}" tag="${tag.name}" cat="${cat.name}">
+                        <a ><img
                                     src="#{if tag.icon}${tag.icon}#{/if}#{else }@{'/public/icons/blank.png'}#{/else}" title="${tag.name}"
                                     alt="${tag.name}"/><br/>${tag.displayName}</a>
                     </li>
@@ -108,8 +120,8 @@
                 #{set cat:categories['addon']/}
                     <ul>
                 #{list items:cat?.tags, as:'tag'}
-                    <li class="tag" id="${cat.name}_${tag.name}">
-                    <a onclick="add_tag('${cat.name}','${tag.name}')"><img
+                    <li class="tag" id="${cat.name}_${tag.name}" tag="${tag.name}" cat="${cat.name}">
+                    <a ><img
                                 src="#{if tag.icon}${tag.icon}#{/if}#{else }@{'/public/icons/blank.png'}#{/else}" title="${tag.name}"
                                 alt="${tag.name}"/><br/>${tag.displayName}</a>
                     </li>
@@ -119,7 +131,10 @@
     </div>
   </div>
 </div> <!-- plan -->
-    
+
+#{if apps}
+    <a id="results" name="results"></a>
+#{/if}
 <div id="choose" class="secondary">
     <div class="container">
     <div clas="row">
