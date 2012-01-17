@@ -28,8 +28,9 @@
         var tags=$("#input_tags").val().split(/, */);
         for (var i=0;i<tags.length;i++) {
             var tag=tags[i].replace("/","_");
-            if (!tag || tag.length()==0) continue;
-            console.log(i+". #"+tag.length()+"#");
+            console.log(tag);
+            if (!tag || tag.length==0) continue;
+            console.log(i+". #"+tag.length+"#");
             $("#"+tag).addClass("tag_selected");
         }
         $(".tag").each(function() {
