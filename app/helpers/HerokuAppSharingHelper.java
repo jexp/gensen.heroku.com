@@ -2,9 +2,11 @@ package helpers;
 
 import com.heroku.api.Heroku;
 import com.heroku.api.model.App;
+import com.jcraft.jsch.HostKeyRepository;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.KeyPair;
+import com.jcraft.jsch.KnownHosts;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
@@ -81,6 +83,7 @@ public class HerokuAppSharingHelper extends Job<App> {
         File sshDir = sshDir(home);
         String publicKey = createKeys(sshDir);
         copyKnownHosts(sshDir);
+        copySshConfig(sshDir);
         herokuApi.addPublicKey(publicKey);
     }
 
@@ -110,6 +113,10 @@ public class HerokuAppSharingHelper extends Job<App> {
     private void copyKnownHosts(File sshDir) throws IOException {
         File knownHostsFile = new File(getClass().getClassLoader().getResource("known_hosts").getFile());
         FileUtils.copyFileToDirectory(knownHostsFile, sshDir);
+    }
+    private void copySshConfig(File sshDir) throws IOException {
+        File sshConfigFile = new File(getClass().getClassLoader().getResource("config").getFile());
+        FileUtils.copyFileToDirectory(sshConfigFile, sshDir);
     }
 
     private String createKeys(File sshDir) throws JSchException, IOException {
