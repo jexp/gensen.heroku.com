@@ -49,8 +49,7 @@ a.tag:hover {
 <script type="text/javascript" src="@{'/public/javascripts/jquery.hint.js'}"></script>
 <script type="text/javascript">
     function stars_click(e,evt) {
-        var stars=Math.round((evt.x-e.offsetLeft)/e.offsetWidth*10)/2;
-        console.log(stars);
+        var stars=Math.round((evt.clientX-e.offsetLeft)/e.offsetWidth*10)/2;
         $("#stars").val(stars);
         $("#stars_image").css({"background-size":(stars*100/5)+"% 100%"})
     }
@@ -90,7 +89,7 @@ a.tag:hover {
             #{set myrating: app.getRating(session.email)/}
             <form action="/like" method="POST">
                <input type="hidden" name="id" value="${app.id}"/>
-               Rating: <img id="stars_image" src="/public/icons/5-stars.png" style="background-image:url(/public/icons/yellow.jpg); background-repeat: no-repeat; background-size: ${myrating?.starsPercent ?: "0%"} 100%;height:16px;" title="${myrating?.stars} Stars" alt="${myrating?.stars} Stars" onclick="stars_click(this,evt);"/>
+               Rating: <img id="stars_image" src="/public/icons/5-stars.png" style="background-image:url(/public/icons/yellow.jpg); background-repeat: no-repeat; background-size: ${myrating?.starsPercent ?: "0%"} 100%;height:16px;" title="${myrating?.stars} Stars" alt="${myrating?.stars} Stars" onclick="stars_click(this,event);"/>
                <input type="hidden" name="stars" value="${myrating?.stars}" id="stars"/>
                Comment: <input type="text" name="comment" value="${myrating?.comment}"/>
                <input type="submit" value="Rate"/>
