@@ -1,8 +1,8 @@
 package controllers;
 
 import com.google.gson.Gson;
-import com.heroku.api.model.Addon;
-import com.heroku.api.model.App;
+import com.heroku.api.Addon;
+import com.heroku.api.App;
 import domain.AppInfo;
 import domain.Category;
 import domain.RepositoryService;
@@ -166,7 +166,7 @@ public class Application extends Controller {
 
         for (App herokuApp : api.listApps()) {
             if (isShared(sharedApps, herokuApp)) continue;
-            final AppInfo appInfo = new AppInfo(map(AppInfo.NAME, herokuApp.getName(), AppInfo.HEROKUAPP,herokuApp.getWeb_url(), AppInfo.STACK, toStack(herokuApp)));
+            final AppInfo appInfo = new AppInfo(map(AppInfo.NAME, herokuApp.getName(), AppInfo.HEROKUAPP,herokuApp.getWebUrl(), AppInfo.STACK, toStack(herokuApp)));
             for (Addon addon : api.addonsFor(herokuApp)) {
                 appInfo.addTag("addon",addonName(addon));
             }
@@ -176,7 +176,7 @@ public class Application extends Controller {
     }
 
     private static boolean isShared(Collection<AppInfo> sharedApps, App app) {
-        final String url = app.getWeb_url();
+        final String url = app.getWebUrl();
         for (AppInfo sharedApp : sharedApps) {
             final String sharedUrl = sharedApp.getUrl();
             if (sharedUrl !=null && sharedUrl.equals(url)) return true;

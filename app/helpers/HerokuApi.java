@@ -3,8 +3,8 @@ package helpers;
 import com.heroku.api.Heroku;
 import com.heroku.api.connection.HttpClientConnection;
 import com.heroku.api.exception.RequestFailedException;
-import com.heroku.api.model.Addon;
-import com.heroku.api.model.App;
+import com.heroku.api.Addon;
+import com.heroku.api.App;
 import com.heroku.api.request.Request;
 import com.heroku.api.request.addon.AddonList;
 import com.heroku.api.request.addon.AppAddonsList;
@@ -84,10 +84,10 @@ public class HerokuApi {
     }
 
     public App createApp(final Heroku.Stack stack) {
-        AppCreate cmd = new AppCreate(stack);
+        AppCreate cmd = new AppCreate(new App().on(stack));
         App app = execute(cmd);
 
-        if (!app.getCreate_status().equals("complete")) {
+        if (!app.getCreateStatus().equals("complete")) {
             throw new RuntimeException("Could not create the Heroku app");
         }
         return app;

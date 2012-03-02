@@ -1,7 +1,7 @@
 package helpers;
 
 import com.heroku.api.Heroku;
-import com.heroku.api.model.App;
+import com.heroku.api.App;
 import com.jcraft.jsch.HostKeyRepository;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
@@ -75,7 +75,7 @@ public class HerokuAppSharingHelper extends Job<App> {
         setRepoUserHome(home, gitRepo);
 
         App app = herokuApi.createApp(Heroku.Stack.Cedar);
-        pushToRemote(gitRepo, app.getGit_url());
+        pushToRemote(gitRepo, app.getGitUrl());
         return app;
     }
 

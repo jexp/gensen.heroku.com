@@ -3,7 +3,7 @@ package controllers;
 import com.dmurph.tracking.AnalyticsConfigData;
 import com.dmurph.tracking.JGoogleAnalyticsTracker;
 import com.google.gson.Gson;
-import com.heroku.api.model.App;
+import com.heroku.api.App;
 import helpers.EmailHelper;
 import helpers.HerokuAppSharingHelper;
 import play.data.validation.Validation;
