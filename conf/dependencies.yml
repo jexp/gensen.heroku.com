@@ -31,11 +31,11 @@ repositories:
             - org.neo4j.build -> parent-pom
             - org.neo4j -> neo4j-test
 
-    - tinkerpop-repository:
-        type: iBiblio
-        root: http://tinkerpop.com/maven2
-        contains:
-            - com.tinkerpop.* -> *
+#    - tinkerpop-repository:
+#        type: iBiblio
+#        root: http://tinkerpop.com/maven2
+#       contains:
+#            - com.tinkerpop.* -> *
 
     - localRepo:
         type: local
