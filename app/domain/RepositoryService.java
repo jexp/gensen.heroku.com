@@ -151,16 +151,16 @@ public class RepositoryService {
         final Iterable<Map<String,Object>> result = queryEngine.query("start n=node(0) " +
                 " match n-[:CATEGORY]->category-[?:TAG]->tag<-[?:TAGGED]-() " +
                 where +
-                " return category, category.category, tag, tag.tag?, tag.icon?, count(*) as count",
-                null);
+                " return category, category.category, tag, tag.tag? as tagName, tag.icon? as icon, count(*) as count",
+                Collections.EMPTY_MAP);
         Map<String,Category> categories=new HashMap<String, Category>();
         for (Map<String, Object> row : result) {
             final String category = string(row, "category.category");
             if (!categories.containsKey(category)) categories.put(category, new Category(category,(Node)row.get("category")));
             final Node tagNode = (Node) row.get("tag");
             if (tagNode==null) continue;
-            final Tag tag = categories.get(category).addTag(tagNode, string(row, "tag.tag"), (Integer) row.get("count"));
-            final Object icon = row.get("tag.icon");
+            final Tag tag = categories.get(category).addTag(tagNode, string(row, "tagName"), (Integer) row.get("count"));
+            final Object icon = row.get("icon");
             if (icon != null)  {
                 tag.setIcon(icon.toString());
             }
