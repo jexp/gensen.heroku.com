@@ -1,22 +1,10 @@
 package helpers;
 
-import com.heroku.api.Heroku;
-import com.heroku.api.connection.HttpClientConnection;
-import com.heroku.api.exception.RequestFailedException;
 import com.heroku.api.Addon;
 import com.heroku.api.App;
-import com.heroku.api.request.Request;
-import com.heroku.api.request.addon.AddonList;
-import com.heroku.api.request.addon.AppAddonsList;
-import com.heroku.api.request.app.AppCreate;
-import com.heroku.api.request.app.AppList;
-import com.heroku.api.request.key.KeyAdd;
-import com.heroku.api.request.key.KeyRemove;
-import com.heroku.api.request.login.BasicAuthLogin;
-import com.heroku.api.request.sharing.SharingAdd;
-import com.heroku.api.request.sharing.SharingRemove;
-import com.heroku.api.request.sharing.SharingTransfer;
-import com.heroku.api.response.Unit;
+import com.heroku.api.Heroku;
+import com.heroku.api.HerokuAPI;
+import com.heroku.api.exception.RequestFailedException;
 
 import java.util.List;
 
@@ -27,65 +15,45 @@ import static java.lang.System.getenv;
 * @since 31.12.11
 */
 public class HerokuApi {
-    private final HttpClientConnection herokuConnection;
+    private final HerokuAPI herokuAPI;
 
     public HerokuApi() {
         this(getenv("HEROKU_USERNAME"),getenv("HEROKU_PASSWORD"));
     }
     public HerokuApi(final String username, final String password) {
-        herokuConnection = createConnection(username, password);
+        herokuAPI = createConnection(username, password);
     }
     public HerokuApi(final String token) {
-        herokuConnection = createConnection(token);
+        herokuAPI = createApi(token);
     }
 
-    private HttpClientConnection createConnection(final String username, final String password) {
-        return new HttpClientConnection(new BasicAuthLogin(username, password));
+    private HerokuAPI createConnection(final String username, final String password) {
+        final String token = HerokuAPI.obtainApiKey(username, password);
+        return createApi(token);
     }
 
-    private HttpClientConnection createConnection(final String token) {
-        return new HttpClientConnection(token);
+    private HerokuAPI createApi(final String token) {
+        return new HerokuAPI(token);
     }
 
     public void shareApp(App app, final String emailAddress) {
-        SharingAdd sharingAdd = new SharingAdd(app.getName(), emailAddress);
-        Unit sharingAddResponse = herokuConnection.execute(sharingAdd);
-
-        if (sharingAddResponse == null) {
-            throw new RuntimeException("Could not add " + emailAddress + " as a collaborator");
-        }
+        herokuAPI.addCollaborator(app.getName(),emailAddress);
     }
 
     public void removeHerokuUserCollaborator(final String appName, final String collaboratorEmail) {
-        SharingRemove sharingRemove = new SharingRemove(appName, collaboratorEmail);
-        Unit sharingRemoveResponse = execute(sharingRemove);
-
-        if (sharingRemoveResponse == null) {
-            throw new RuntimeException("Could remove " + collaboratorEmail + " from the app");
-        }
+        herokuAPI.removeCollaborator(appName,collaboratorEmail);
     }
 
     public void removeHerokuUserKey(final String keyName) {
-        KeyRemove keyRemove = new KeyRemove(keyName);
-        Unit keyRemoveResponse = execute(keyRemove);
-
-        if (keyRemoveResponse == null) {
-            throw new RuntimeException("Could not remove ssh key");
-        }
+        herokuAPI.removeKey(keyName);
     }
 
     public void addPublicKey(String sshPublicKey) {
-        KeyAdd keyAdd = new KeyAdd(sshPublicKey);
-        Unit keyAddResponse = execute(keyAdd);
-
-        if (keyAddResponse == null) {
-            throw new RuntimeException("Could not add an ssh key to the user");
-        }
+        herokuAPI.addKey(sshPublicKey);
     }
 
     public App createApp(final Heroku.Stack stack) {
-        AppCreate cmd = new AppCreate(new App().on(stack));
-        App app = execute(cmd);
+        final App app = herokuAPI.createApp(new App().on(stack));
 
         if (!app.getCreateStatus().equals("complete")) {
             throw new RuntimeException("Could not create the Heroku app");
@@ -94,37 +62,27 @@ public class HerokuApi {
     }
 
     public void transferApp(final String emailAddress, final String appName) {
-        SharingTransfer sharingTransfer = new SharingTransfer(appName, emailAddress);
-        Unit sharingTransferResponse = execute(sharingTransfer);
-
-        if (sharingTransferResponse == null) {
-            throw new RuntimeException("Could not transfer the app to " + emailAddress);
-        }
-    }
-
-    private <T> T execute(Request<T> request) {
-        return herokuConnection.execute(request);
+        herokuAPI.transferApp(appName,emailAddress);
     }
 
 
     public List<Addon> listAddons() {
-        final AddonList addonList = new AddonList();
-        return execute(addonList);
+        return herokuAPI.listAllAddons();
     }
 
     public static String getToken(String email, String password) {
         try {
-            return new HerokuApi(email, password).herokuConnection.getApiKey();
+            return HerokuAPI.obtainApiKey(email, password);
         } catch(RequestFailedException rfe) {
             return null;
         }
     }
 
     public List<App> listApps() {
-        return execute(new AppList());
+        return herokuAPI.listApps();
     }
 
     public List<Addon> addonsFor(App app) {
-        return execute(new AppAddonsList(app.getName()));
+        return herokuAPI.listAppAddons(app.getName());
     }
 }

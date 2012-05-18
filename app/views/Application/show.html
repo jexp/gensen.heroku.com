@@ -60,12 +60,18 @@ a.tag:hover {
   <div class="container">
     <div class="row">
         <div class="span16 round-box">
-        <h4>${app.name} <img src="/public/icons/5-stars.png" style="background-image:url(/public/icons/yellow.jpg); background-repeat: no-repeat; background-size: ${app.starsPercent} 100%;height:16px;" title="${app.stars} Stars" alt="${app.stars} Stars"/></h4>
         #{if flash.error}
             <p style="color:#c00">
                 ${flash.error}
             </p>
         #{/if}
+        #{if !app}
+            <p style="color:#c00">
+                Error loading application information.
+            </p>
+        #{/if}
+        #{else }
+        <h4>${app.name} <img src="/public/icons/5-stars.png" style="background-image:url(/public/icons/yellow.jpg); background-repeat: no-repeat; background-size: ${app.starsPercent} 100%;height:16px;" title="${app.stars} Stars" alt="${app.stars} Stars"/></h4>
         <div>
            <span name="id" style="display: none;">${app.id}</span>
            Description: ${app.description}<br/>
@@ -103,7 +109,7 @@ a.tag:hover {
            #{/list}
         </div>
         </div>
-
+        #{/else}
 
     </div>
   </div>

@@ -3,6 +3,7 @@ package controllers;
 import com.google.gson.Gson;
 import com.heroku.api.Addon;
 import com.heroku.api.App;
+import com.heroku.api.Heroku;
 import domain.AppInfo;
 import domain.Category;
 import domain.RepositoryService;
@@ -185,10 +186,10 @@ public class Application extends Controller {
     }
 
     private static String toStack(App herokuApp) {
-        final String stack = herokuApp.getStack();
-        if (stack.equalsIgnoreCase("cedar")) return "cedar";
-        if (stack.contains("amboo")) return "bamboo";
-        if (stack.contains("spen")) return "aspen";
+        final String stackName = herokuApp.getStack().name();
+        if (stackName.equalsIgnoreCase("cedar")) return "cedar";
+        if (stackName.contains("amboo")) return "bamboo";
+        if (stackName.contains("spen")) return "aspen";
         return null;
     }
 }

@@ -240,9 +240,9 @@ public class RepositoryService {
         final Iterable<Map<String,Object>> result = queryEngine.query(
                 statement,null); // map("query",query.toString())
         System.err.println(statement);
-        Map<Integer, domain.AppInfo> apps = new LinkedHashMap<Integer, AppInfo>();
+        Map<Integer, AppInfo> apps = new LinkedHashMap<Integer, AppInfo>();
         for (Map<String, Object> row : result) {
-            final domain.AppInfo app = createApp(row);
+            final AppInfo app = createApp(row);
             apps.put(app.getId(),app);
         }
         return apps;
@@ -271,21 +271,23 @@ public class RepositoryService {
                 " return app.id as appid, app.name, app, user.email? as owner," +
                 " collect(extract(n in NODES(p) : coalesce(n.tag?,n.category?))) as tags, r.stars? as stars, r.comment? as comment, rated.email? as rater";
         final Iterable<Map<String,Object>> result = queryEngine.query(
-                statement,null); // map("query",query.toString())
+                statement,Collections.EMPTY_MAP); // map("query",query.toString())
         System.err.println(statement);
-        domain.AppInfo app=null;
+        AppInfo app=null;
         for (Map<String, Object> row : result) {
             if (app==null) app = createApp(row);
             if (row.get("stars")!=null) { app.addRating(intValue(row.get("stars")),string(row,"comment"),string(row,"rater")); }
         }
-        app.calculateStars();
+        if (app!=null) {
+            app.calculateStars();
+        }
         return app;
     }
 
 
-    private  domain.AppInfo createApp(Map<String, Object> row) {
+    private  AppInfo createApp(Map<String, Object> row) {
         final Node appNode = (Node)row.get("app");
-        final domain.AppInfo app = new domain.AppInfo(appNode);
+        final AppInfo app = new AppInfo(appNode);
         app.setStars(floatValue(row,"rating"));
         app.setOwner(string(row,"owner"));
         addTags(row, app);
